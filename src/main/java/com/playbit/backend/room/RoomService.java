@@ -20,11 +20,11 @@ public class RoomService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않거나 잘못된 입장 코드입니다.") );
 
         //uuid 이용한 사용자 검증 로직 (아직 playerRepository는 진행 안됨)
-        boolean isRegisteredPlayer = playerRepository.
+        /*boolean isRegisteredPlayer = playerRepository.
                 existsByRoomAndMember_MemberUuid(room, memberUuid);
         if (!isRegisteredPlayer) {
             throw new RuntimeException("이 방에 참여 중인 플레이어가 아닙니다.");
-        }
+        }*/
 
         return room;
     }
