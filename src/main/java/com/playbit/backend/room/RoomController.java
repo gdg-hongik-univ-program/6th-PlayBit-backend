@@ -18,4 +18,5 @@ public class RoomController {
     ){
         return roomService.enterRoom(entryCode, memberUuid) ;
     }
+
 }

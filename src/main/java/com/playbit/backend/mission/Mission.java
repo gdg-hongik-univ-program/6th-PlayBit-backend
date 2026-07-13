@@ -3,11 +3,16 @@ package com.playbit.backend.mission;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.room.Room;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
 public class Mission {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long missionId;
@@ -27,5 +32,5 @@ public class Mission {
 
     private LocalDateTime completeAT;
 
-    private boolean isSabotaged;
+    private Boolean sabotaged;
 }

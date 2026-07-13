@@ -3,8 +3,12 @@ package com.playbit.backend.player;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.room.Room;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 public class Player {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
