@@ -1,5 +1,6 @@
 package com.playbit.backend.room;
 
+import com.playbit.backend.room.dto.CategoryRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,4 +20,19 @@ public class RoomController {
         return roomService.enterRoom(entryCode, memberUuid) ;
     }
 
+    @PostMapping
+    public String createRoom(
+            @RequestHeader(value = "X-Member-Id") String memberUuid
+    ){
+        return roomService.createRoom();
+    }
+
+    @PatchMapping("/{entryCode}/category")
+    public Room setRoom(
+            @PathVariable String entryCode,
+            @RequestHeader(value = "X-Member-Id") String memberUuid,
+            @RequestBody CategoryRequest request
+    ){
+        return roomService.setRoom(entryCode, memberUuid, request.category());
+    }
 }
