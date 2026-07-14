@@ -35,7 +35,7 @@ public class Mission {
     @JoinColumn(name = "completed_by_member_id")
     private Member completedBy;
 
-    private LocalDateTime completeAT;
+    private LocalDateTime completedAt;
 
     private Boolean sabotaged;
 

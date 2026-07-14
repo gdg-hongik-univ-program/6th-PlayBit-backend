@@ -8,6 +8,8 @@ import com.playbit.backend.mission.MissionRepository;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.player.PlayerRole;
+import com.playbit.backend.room.dto.RoomCreateResponse;
+import com.playbit.backend.room.dto.RoomDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,13 +45,13 @@ public class RoomService {
 
     //방 생성 페이지 진입
     @Transactional
-    public String createRoom(){
+    public RoomCreateResponse createRoom(){
         // 입장 코드 랜덤 생성
         String entryCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Room room = new Room(RoomStatus.WAITING, null, entryCode);
         roomRepository.save(room);
 
-        return entryCode;
+        return new RoomCreateResponse(entryCode);
 
     }
 
