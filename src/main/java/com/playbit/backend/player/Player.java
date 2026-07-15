@@ -5,10 +5,12 @@ import com.playbit.backend.member.Member;
 import com.playbit.backend.room.Room;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class Player {
 
@@ -34,4 +36,5 @@ public class Player {
 
     @Enumerated(EnumType.STRING)
     private PlayerRole role;
+
 }

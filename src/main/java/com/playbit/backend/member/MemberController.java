@@ -16,11 +16,11 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping
-    public ResponseEntity<String> createMember() {
+    public ResponseEntity<MemberDTO> createMember() {
 
-        String uuid = memberService.createMember();
-        URI location = URI.create("/api/members/" + uuid);
+        MemberDTO memberDTO = memberService.createMember();
+        URI location = URI.create("/api/members/" + memberDTO.uuid().toString());
 
-        return ResponseEntity.created(location).body(uuid);
+        return ResponseEntity.created(location).body(memberDTO);
     }
 }

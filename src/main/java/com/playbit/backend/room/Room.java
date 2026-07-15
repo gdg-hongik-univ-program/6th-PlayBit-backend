@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
+import org.antlr.v4.runtime.misc.NotNull;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class Room {
 
@@ -41,7 +44,7 @@ public class Room {
 
     private LocalDateTime turnDeadline;
 
-    private boolean currentTurnSabotaged;
+    private Boolean currentTurnSabotaged;
 
     public void startGame(Long firstTurnMemberId ){
         this.status = RoomStatus.PLAYING;

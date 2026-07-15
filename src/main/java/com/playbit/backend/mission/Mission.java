@@ -5,10 +5,14 @@ import com.playbit.backend.member.Member;
 import com.playbit.backend.room.Room;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
 @NoArgsConstructor
 public class Mission {
     @Id
@@ -30,13 +34,12 @@ public class Mission {
     @JoinColumn(name = "completed_by_member_id")
     private Member completedBy;
 
-    private LocalDateTime completedAT;
+    private LocalDateTime completedAt;
 
-    private Boolean sabotaged;
 
     public Mission(Room room, Long position, Content content){
         this.room = room;
         this.position = position;
         this.content = content ;
-    };
+    }
 }
