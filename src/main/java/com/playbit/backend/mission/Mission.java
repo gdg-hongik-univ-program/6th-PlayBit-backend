@@ -30,9 +30,9 @@ public class Mission {
     @JoinColumn(name = "completed_by_member_id")
     private Member completedBy;
 
-    private LocalDateTime completeAT;
+    private LocalDateTime completedAT;
 
-    private boolean isSabotaged;
+    private Boolean sabotaged;
 
     public Mission(Room room, Long position, Content content){
         this.room = room;

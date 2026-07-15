@@ -1,7 +1,10 @@
 package com.playbit.backend.room;
 
+import com.playbit.backend.common.response.ApiResponse;
 import com.playbit.backend.room.dto.CategoryRequest;
+import com.playbit.backend.room.dto.SetRoomResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,11 +31,12 @@ public class RoomController {
     }
 
     @PatchMapping("/{entryCode}/category")
-    public Room setRoom(
+    public ResponseEntity<ApiResponse<SetRoomResponse>> setRoom(
             @PathVariable String entryCode,
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @RequestBody CategoryRequest request
     ){
-        return roomService.setRoom(entryCode, memberUuid, request.category());
+        return ResponseEntity.ok(ApiResponse.success(roomService
+                .setRoom(entryCode, memberUuid, request.category())));
     }
 }

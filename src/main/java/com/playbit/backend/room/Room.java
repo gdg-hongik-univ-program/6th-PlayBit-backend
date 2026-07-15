@@ -41,6 +41,8 @@ public class Room {
 
     private LocalDateTime turnDeadline;
 
+    private boolean currentTurnSabotaged;
+
     public void startGame(Long firstTurnMemberId ){
         this.status = RoomStatus.PLAYING;
         this.currentTurnMemberId = firstTurnMemberId;

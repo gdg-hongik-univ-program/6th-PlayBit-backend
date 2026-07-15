@@ -8,6 +8,7 @@ import com.playbit.backend.mission.MissionRepository;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.player.PlayerRole;
+import com.playbit.backend.room.dto.SetRoomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +56,7 @@ public class RoomService {
 
     //카테고리 선택후 방 생성
     @Transactional
-    public Room setRoom(String entryCode, String memberUuid, String category){
+    public SetRoomResponse setRoom(String entryCode, String memberUuid, String category){
         Room room = roomRepository.findByEntryCode(entryCode)
                 .orElseThrow(() -> new RuntimeException("존재하지 않거나 잘못된 입장 코드입니다."));
 
@@ -69,6 +70,7 @@ public class RoomService {
         Player player = new Player(room, member, PlayerRole.O);
         playerRepository.save(player);
 
+
         //미션 객체 생성 후 DB에 저장
         List<Content> missions = getMissionsByCategory(category);
         for (int i =0; i <9; i++){
@@ -76,7 +78,7 @@ public class RoomService {
             missionRepository.save(mission);
         }
 
-        return room;
+        return new SetRoomResponse();
     }
 
     // 카테고리에 따라 미션 내용 반환해주는 헬퍼 메서드
