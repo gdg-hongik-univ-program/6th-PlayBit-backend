@@ -13,7 +13,7 @@ public class MissionController {
     private final MissionService missionService;
 
     @PatchMapping("/{position}")
-    public ResponseEntity<?> updateMission(
+    public ResponseEntity<?> completeMission(
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @PathVariable String entryCode,
             @PathVariable Long position)
