@@ -68,10 +68,6 @@ public class RoomService {
         //카테고리 업데이트
         room.updateCategory(category);
 
-        //player(O 역할) 등록
-        Player player = new Player(room, member, PlayerRole.O);
-        playerRepository.save(player);
-
         //미션 객체 생성 후 DB에 저장
         List<Content> missions = getMissionsByCategory(category);
         for (int i =0; i <9; i++){
