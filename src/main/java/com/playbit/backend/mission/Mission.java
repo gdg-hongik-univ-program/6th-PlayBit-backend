@@ -43,5 +43,6 @@ public class Mission {
         this.room = room;
         this.position = position;
         this.content = content ;
-    };
+        this.sabotaged = false;
+    }
 }

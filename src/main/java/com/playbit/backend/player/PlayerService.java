@@ -39,6 +39,8 @@ public class PlayerService {
             throw new RuntimeException("종료된 게임입니다.");
         }
 
+        // 방 생성자인지 확인
+
         //player(X 역할) 등록
         Player player = new Player(room, member, PlayerRole.X);
         playerRepository.save(player);

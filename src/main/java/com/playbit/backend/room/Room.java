@@ -43,6 +43,8 @@ public class Room {
 
     private LocalDateTime turnDeadline;
 
+    private Boolean currentTurnSabotaged;
+
     public void startGame(Long firstTurnMemberId ){
         this.status = RoomStatus.PLAYING;
         this.currentTurnMemberId = firstTurnMemberId;
@@ -53,4 +55,6 @@ public class Room {
     public void updateCategory(String category){
         this.category = category;
     }
+
+
 }
