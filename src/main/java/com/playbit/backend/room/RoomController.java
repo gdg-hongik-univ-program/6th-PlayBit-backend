@@ -20,6 +20,7 @@ public class RoomController {
 
     private final RoomService roomService;
 
+    //방 정보 요청
     @GetMapping("/{entryCode}")
     public Room enterRoom(
             @PathVariable String entryCode,
@@ -28,13 +29,16 @@ public class RoomController {
         return roomService.enterRoom(entryCode, memberUuid) ;
     }
 
+    //빈방 생성
     @PostMapping
-    public ResponseEntity<RoomCreateResponse> createRoom(
+    public ResponseEntity<ApiResponse<RoomCreateResponse>> createRoom(
             @RequestHeader(value = "X-Member-Id") String memberUuid
     ){
-        return ResponseEntity.status(HttpStatus.CREATED).body(roomService.createRoom());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(roomService.createRoom()));
     }
 
+    //카테고리 선택
     @PatchMapping("/{entryCode}/category")
     public ResponseEntity<ApiResponse<SetRoomResponse>> setRoom(
             @PathVariable String entryCode,

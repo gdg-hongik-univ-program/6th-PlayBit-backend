@@ -44,7 +44,7 @@ public class RoomService {
         return room;
     }
 
-    //방 생성 페이지 진입
+    //방 생성
     @Transactional
     public RoomCreateResponse createRoom(){
         // 입장 코드 랜덤 생성
@@ -52,13 +52,21 @@ public class RoomService {
         Room room = new Room(RoomStatus.WAITING, null, entryCode);
         roomRepository.save(room);
 
-        return new RoomCreateResponse(entryCode);
+        //Category Enum의 모든 값을 순회하며 한글 이름까지 추출
+        List<RoomCreateResponse.CategoryItem> categoryItemList = Arrays.stream(Category.values())
+                .map(category -> new RoomCreateResponse.CategoryItem(
+                        category.name(),            // "STUDY"
+                        category.getDescription()   // "공부"
+                ))
+                .toList();
+
+        return new RoomCreateResponse(entryCode,categoryItemList);
 
     }
 
     //카테고리 선택후 방 생성
     @Transactional
-    public SetRoomResponse setRoom(String entryCode, String memberUuid, String category){
+    public SetRoomResponse setRoom(String entryCode, String memberUuid, Category category){
         Room room = roomRepository.findByEntryCode(entryCode)
                 .orElseThrow(() -> new RuntimeException("존재하지 않거나 잘못된 입장 코드입니다."));
 
@@ -67,10 +75,6 @@ public class RoomService {
 
         //카테고리 업데이트
         room.updateCategory(category);
-
-        //player(O 역할) 등록
-        Player player = new Player(room, member, PlayerRole.O);
-        playerRepository.save(player);
 
         //미션 객체 생성 후 DB에 저장
         List<Content> missions = getMissionsByCategory(category);
@@ -83,10 +87,10 @@ public class RoomService {
     }
 
     // 카테고리에 따라 미션 내용 반환해주는 헬퍼 메서드
-    private List<Content> getMissionsByCategory(String category) {
+    private List<Content> getMissionsByCategory(Category category) {
         List<Content> missions = new ArrayList<>();
 
-        if ("STUDY".equalsIgnoreCase(category)) {
+        if (category == Category.STUDY) {
             missions.addAll(Arrays.asList(
                     Content.STUDY_1, Content.STUDY_2, Content.STUDY_3,
                     Content.STUDY_4, Content.STUDY_5, Content.STUDY_6,

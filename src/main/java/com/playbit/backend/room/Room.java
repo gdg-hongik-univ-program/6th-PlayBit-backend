@@ -5,7 +5,6 @@ import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.antlr.v4.runtime.misc.NotNull;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Room {
 
-    public Room(RoomStatus status, String category, String entryCode){
+    public Room(RoomStatus status, Category category, String entryCode){
         this.status = status;
         this.category = category;
         this.entryCode = entryCode;
@@ -37,7 +36,8 @@ public class Room {
     @JoinColumn(name = "winner_member_id")
     private Member winner;
 
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private Category category;
 
     private Long currentTurnMemberId;
 
@@ -56,7 +56,7 @@ public class Room {
         this.turnDeadline = LocalDateTime.now().plusHours(24);
     }
 
-    public void updateCategory(String category){
+    public void updateCategory(Category category){
         this.category = category;
     }
 

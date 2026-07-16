@@ -1,4 +1,6 @@
 package com.playbit.backend.room.dto;
 
-public record CategoryRequest(String category) {
+import com.playbit.backend.room.Category;
+
+public record CategoryRequest(Category category) {
 }
