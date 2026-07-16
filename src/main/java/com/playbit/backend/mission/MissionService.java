@@ -2,11 +2,15 @@ package com.playbit.backend.mission;
 
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
+import com.playbit.backend.mission.dto.MissionCompleteResponse;
+import com.playbit.backend.mission.dto.MissionDTO;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
-import com.playbit.backend.room.RoomStatus;
+import com.playbit.backend.room.dto.FinishedRoomDTO;
+import com.playbit.backend.room.dto.PlayingRoomDTO;
+import com.playbit.backend.room.dto.RoomDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,7 +65,7 @@ public class MissionService {
     }
 
     @Transactional
-    public void completeMission(String memberUuid, long position, String roomCode) {
+    public MissionCompleteResponse completeMission(String memberUuid, long position, String roomCode) {
 
         // uuid로 멤버를 조회한다 (uuid를 사용해 조회하면 성능 이슈)
         Member member = memberRepository.findByMemberUuid(memberUuid)
@@ -91,17 +95,20 @@ public class MissionService {
 
                 //방 상태를 finished로 바꾸고 승자 기록
                 room.gameFinished(member);
+                return new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
             } else {
                 room.turnFinished(opponent.getMember().getMemberId());
+                return new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
             }
         } else  {
             throw new RuntimeException("해당 사용자의 차례가 아닙니다.");
         }
+
     }
 
     @Transactional
-    public void sabotageMission(String memberUuid, long position, String roomCode) {
+    public RoomDTO sabotageMission(String memberUuid, long position, String roomCode) {
 
         // uuid로 멤버를 조회한다 (uuid를 사용해 조회하면 성능 이슈)
         Member member = memberRepository.findByMemberUuid(memberUuid)
@@ -129,5 +136,7 @@ public class MissionService {
         room.setCurrentTurnSabotaged(true);
 
         room.setTurnDeadline(room.getTurnDeadline().minusHours(6));
+
+        return PlayingRoomDTO.from(room);
     }
 }

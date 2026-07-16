@@ -80,9 +80,9 @@ public class Room {
     public void gameFinished(Member member) {
         this.setStatus(RoomStatus.FINISHED);
         this.setWinner(member);
-        this.setCurrentTurnMemberId(null);
+        /*this.setCurrentTurnMemberId(null);
         this.setTurnStartedAt(null);
         this.setTurnDeadline(null);
-        this.setCurrentTurnSabotaged(false);
+        this.setCurrentTurnSabotaged(false);*/
     }
 }
