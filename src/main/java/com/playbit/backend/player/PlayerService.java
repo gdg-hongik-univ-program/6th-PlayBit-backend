@@ -60,7 +60,7 @@ public class PlayerService {
 
         //선공 player 결정 및 게임 시작
         if(playerCount == 1){
-            //방 생성자 정보 가져오기 -> 방 생성자가 무조건 O를 가져와야 할까?
+            //방 생성자 정보 가져오기 -> 방 생성자가 무조건 O를 가져와야 할까? -> 그냥 역할 O인 사람 가쟈오기
             Player firstPlayer = playerRepository.findByRoomAndRole(room, PlayerRole.O)
                     .orElseThrow(()-> new RuntimeException("기존 플레이어를 찾을 수 없습니다."));
             //50% 확률로 선공할 멤버 id 결정(동시성 이슈 존재)

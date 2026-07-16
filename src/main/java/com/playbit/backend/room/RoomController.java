@@ -2,6 +2,7 @@ package com.playbit.backend.room;
 
 import com.playbit.backend.common.response.ApiResponse;
 import com.playbit.backend.room.dto.CategoryRequest;
+import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +23,12 @@ public class RoomController {
 
     //방 정보 요청
     @GetMapping("/{entryCode}")
-    public Room enterRoom(
+    public ResponseEntity<ApiResponse<EnterRoomResponse>> enterRoom(
             @PathVariable String entryCode,
             @RequestHeader(value = "X-Member-Id") String memberUuid
     ){
-        return roomService.enterRoom(entryCode, memberUuid) ;
+        return ResponseEntity.ok(ApiResponse.success(
+                roomService.enterRoom(entryCode, memberUuid)));
     }
 
     //빈방 생성
