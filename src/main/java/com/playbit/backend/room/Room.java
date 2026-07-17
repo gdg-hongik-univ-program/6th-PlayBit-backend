@@ -3,6 +3,7 @@ package com.playbit.backend.room;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Room {
 
     public Room(RoomStatus status, Category category, String entryCode){
@@ -71,7 +73,6 @@ public class Room {
         LocalDateTime now = LocalDateTime.now();
         this.setTurnStartedAt(now);
         this.setTurnDeadline(now.plusHours(24));
-
 
         // 사보타주 변수를 초기화한다.
         this.setCurrentTurnSabotaged(false);

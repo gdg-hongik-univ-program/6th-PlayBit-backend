@@ -10,7 +10,5 @@ import java.util.Optional;
 public interface MissionRepository extends JpaRepository<Mission, Long> {
     Optional<Mission> findByRoomAndPosition(Room room, Long position);
     List<Mission> findByRoomAndCompletedBy(Room room, Member member);
-    Optional<Mission> findByRoomAndPosition(Long roomId, Long position);
-    List<Mission> findByRoomAndCompletedBy(Long roomId, Member member);
     List<Mission> findByRoom(Room room);
 }
