@@ -13,7 +13,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public String createMember() {
+    public MemberDTO createMember() {
 
         // v4 uuid 생성 (완전히 랜덤 -> 조회 로직 성능 저하 야기할 가능성이 있음)
         UUID uuid = UUID.randomUUID();
@@ -23,6 +23,6 @@ public class MemberService {
         Member member = new Member(uuid.toString());
         memberRepository.save(member);
 
-        return uuid.toString();
+        return new MemberDTO(uuid);
     }
 }
