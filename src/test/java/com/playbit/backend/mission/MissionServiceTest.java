@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -173,7 +174,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndCompletedBy(room, member)).thenReturn(Collections.EMPTY_LIST);
 
         //when & then
-        MissionCompleteResponse missionCompleteResponse = missionService.completeMission(memberUuid, position, roomCode);
+        missionService.completeMission(memberUuid, position, roomCode);
 
         assertThat(room.getCurrentTurnMemberId()).isEqualTo(7L);
         assertThat(room.getCurrentTurnNumber()).isEqualTo(3L);
@@ -212,10 +213,202 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndCompletedBy(any(), any())).thenReturn(List.of(mission2, mission0, mission1));
 
         //when & then
-        MissionCompleteResponse missionCompleteResponse = missionService.completeMission(memberUuid, position, roomCode);
+        missionService.completeMission(memberUuid, position, roomCode);
 
 
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isEqualTo(member);
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 유저가 보낸 요청이면 RuntimeException 발생")
+    void sabotageMission_memberNotFound() {
+
+        //given
+        String memberUuid = UUID.randomUUID().toString();
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+
+        when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.empty());
+
+
+        //when & then
+
+        assertThatThrownBy(()->missionService.sabotageMission(memberUuid, position, roomCode))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("존재하지 않는 멤버입니다.");
+
+        verify(roomRepository, never()).findByEntryCode(any());
+        verify(missionRepository, never()).findByRoomAndPosition(any(), anyLong());
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 방에 보낸 요청이면 RuntimeException 발생")
+    void sabotageMission_roomNotFound() {
+
+        //given
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member member = new Member(1L, UUID.randomUUID().toString());
+
+        when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.empty());
+
+        //when & then
+        assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("존재하지 않는 방입니다.");
+
+        verify(missionRepository, never()).findByRoomAndPosition(any(), anyLong());
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 미션에 보낸 요청이면 RuntimeException 발생")
+    void sabotageMission_missionNotFound() {
+
+        //given
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member member = new Member(1L, UUID.randomUUID().toString());
+        Room room = new Room();
+
+        when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
+        when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.empty());
+
+        //when & then
+        assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("존재하지 않는 미션입니다.");
+
+        assertThat(room.getCurrentTurnSabotaged()).isFalse();
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 자신의 차례에 보낸 요청이면 RuntimeException 발생")
+    void sabotageMission_cannotSabotageAtYourTurn() {
+
+        //given
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member member = new Member(7L, UUID.randomUUID().toString());
+        LocalDateTime turnStartedAt = LocalDateTime.now();
+
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 7L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Mission mission = new Mission();
+
+        when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
+        when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+
+        //when & then
+        assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("자신의 차례에는 사보타주가 불가합니다.");
+
+        assertThat(room.getCurrentTurnSabotaged()).isFalse();
+        assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusDays(1L));
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 아무도 완료하지 않은 미션에 보낸 요청이면 RuntimeException 발생")
+    void sabotageMission_cannotSabotageToUncompletedMission() {
+
+        //given
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member member = new Member(7L, UUID.randomUUID().toString());
+        LocalDateTime turnStartedAt = LocalDateTime.now();
+
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Mission mission = new Mission(35L, room, 4L, null, null, null);
+
+        when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
+        when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+
+        //when & then
+        assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("상대방이 완료한 미션만 사보타주 가능합니다.");
+
+        assertThat(room.getCurrentTurnSabotaged()).isFalse();
+        assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusDays(1L));
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 내가 완료한 미션에 보낸 요청이면 RuntimeException 발생")
+    void sabotageMission_cannotSabotageToYourMission() {
+
+        //given
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member member = new Member(7L, UUID.randomUUID().toString());
+        LocalDateTime turnStartedAt = LocalDateTime.now();
+
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Mission mission = new Mission(35L, room, 4L, null, member, null);
+
+        when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
+        when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+
+        //when & then
+        assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("상대방이 완료한 미션만 사보타주 가능합니다.");
+
+        assertThat(room.getCurrentTurnSabotaged()).isFalse();
+        assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusDays(1L));
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 이미 이번 턴에 사보타주를 했으면 RuntimeException 발생")
+    void sabotageMission_alreadySabotagedAtThisTurn() {
+
+        //given
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member opponent = new Member(34L, UUID.randomUUID().toString());
+        Member member = new Member(7L, UUID.randomUUID().toString());
+        LocalDateTime turnStartedAt = LocalDateTime.now();
+
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusHours(16L), true);
+        Mission mission = new Mission(35L, room, 4L, null, opponent, null);
+
+        when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
+        when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+
+        //when & then
+        assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("이번 턴에 이미 한 번의 사보타주 기회를 사용하셨습니다.");
+
+    }
+
+    @Test
+    @DisplayName("사보타주 요청 처리 성공")
+    void sabotageMission_success() {
+
+        //given
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member opponent = new Member(34L, UUID.randomUUID().toString());
+        Member member = new Member(7L, UUID.randomUUID().toString());
+        LocalDateTime turnStartedAt = LocalDateTime.now();
+
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Mission mission = new Mission(35L, room, 4L, null, opponent, turnStartedAt);
+
+        when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
+        when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+
+        //when & then
+        missionService.sabotageMission(member.getMemberUuid(), position, roomCode);
+
+        assertThat(room.getCurrentTurnSabotaged()).isTrue();
+        assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusHours(18L));
     }
 }
