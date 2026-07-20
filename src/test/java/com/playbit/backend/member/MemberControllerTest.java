@@ -40,9 +40,9 @@ public class MemberControllerTest {
         mockMvc.perform(post("/api/members")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.error").value(null))
+                .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.uuid").value(uuid.toString()))
                 .andExpect(header().exists("location"));
-
     }
-
 }
