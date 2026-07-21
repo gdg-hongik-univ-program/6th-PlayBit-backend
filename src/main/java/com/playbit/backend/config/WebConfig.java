@@ -23,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer{
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 // 🚨 여기서 "X-Member-Id"를 반드시 열어줘야 프론트에서 보낸 헤더가 백엔드에 도착해!
-                .allowedHeaders("X-Member-Id", "Content-Type", "Authorization", "ngrok-skip-browser-warning")
+                .allowedHeaders("X-Member-Id", "Content-Type", "Authorization")
                 .allowCredentials(true);
     }
 
