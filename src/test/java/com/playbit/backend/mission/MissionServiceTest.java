@@ -270,7 +270,8 @@ public class MissionServiceTest {
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Member member = new Member(1L, UUID.randomUUID().toString());
-        Room room = new Room();
+        LocalDateTime turnStartedAt = LocalDateTime.now();
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 7L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));

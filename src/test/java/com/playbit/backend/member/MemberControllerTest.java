@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -40,7 +41,7 @@ public class MemberControllerTest {
         mockMvc.perform(post("/api/members")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.error").value(null))
+                .andExpect(jsonPath("$.error").value(nullValue()))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.uuid").value(uuid.toString()))
                 .andExpect(header().exists("location"));
