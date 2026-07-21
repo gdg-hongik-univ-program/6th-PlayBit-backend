@@ -12,6 +12,7 @@ public record EnterRoomResponse(
         String entryCode,
         RoomStatus status,
         Category category,
+        Long myMemberId, // 내 멤버 ID 관전자면 null
         Long currentTurnMemberId,   //FINISHED 상태일때는 null
         LocalDateTime turnStartedAt, //FINISHED 상태일때는 null
         LocalDateTime turnDeadline, //FINISHED 상태일때는 null
