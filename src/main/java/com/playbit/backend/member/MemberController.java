@@ -1,5 +1,6 @@
 package com.playbit.backend.member;
 
+import com.playbit.backend.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,11 +17,11 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping
-    public ResponseEntity<MemberDTO> createMember() {
+    public ResponseEntity<ApiResponse<MemberDTO>> createMember() {
 
         MemberDTO memberDTO = memberService.createMember();
         URI location = URI.create("/api/members/" + memberDTO.uuid().toString());
 
-        return ResponseEntity.created(location).body(memberDTO);
+        return ResponseEntity.created(location).body(ApiResponse.success(memberDTO));
     }
 }

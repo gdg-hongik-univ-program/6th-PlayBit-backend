@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface PlayerRepository extends JpaRepository<Player, Long> {
     long countByRoom(Room room);
     Optional<Player> findByRoomAndRole(Room room, PlayerRole role);
-    Optional<Player> findByRoomAndMemberNot(long roomId, long memberId);
+    Optional<Player> findByRoomAndMemberNot(Room room, Member member);
     boolean existsByRoomAndMember_MemberUuid(Room room, String memberUuid);
     boolean existsByRoomAndMember(Room room, Member member);
     List<Player> findByRoom(Room room);

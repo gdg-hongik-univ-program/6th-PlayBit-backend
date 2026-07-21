@@ -3,6 +3,7 @@ package com.playbit.backend.room;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -13,12 +14,14 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Room {
 
     public Room(RoomStatus status, Category category, String entryCode){
         this.status = status;
         this.category = category;
         this.entryCode = entryCode;
+        this.currentTurnNumber = 1L;
     }
 
     @Id
@@ -40,6 +43,8 @@ public class Room {
 
     private Long currentTurnMemberId;
 
+    private Long currentTurnNumber;
+
     private LocalDateTime turnStartedAt;
 
     private LocalDateTime turnDeadline;
@@ -55,5 +60,30 @@ public class Room {
 
     public void updateCategory(Category category){
         this.category = category;
+    }
+
+
+
+    public void turnFinished(Long nextTurnMemberId) {
+        // 상대의 턴으로 넘기고
+        this.setCurrentTurnMemberId(nextTurnMemberId);
+        this.currentTurnNumber++;
+
+        // 해당 시간을 기록하고
+        LocalDateTime now = LocalDateTime.now();
+        this.setTurnStartedAt(now);
+        this.setTurnDeadline(now.plusHours(24));
+
+        // 사보타주 변수를 초기화한다.
+        this.setCurrentTurnSabotaged(false);
+    }
+
+    public void gameFinished(Member member) {
+        this.setStatus(RoomStatus.FINISHED);
+        this.setWinner(member);
+        /*this.setCurrentTurnMemberId(null);
+        this.setTurnStartedAt(null);
+        this.setTurnDeadline(null);
+        this.setCurrentTurnSabotaged(false);*/
     }
 }

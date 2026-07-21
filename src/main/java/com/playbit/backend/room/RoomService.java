@@ -7,10 +7,8 @@ import com.playbit.backend.mission.Mission;
 import com.playbit.backend.mission.MissionRepository;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
-import com.playbit.backend.player.PlayerRole;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
-import com.playbit.backend.room.dto.RoomDTO;
 import com.playbit.backend.room.dto.SetRoomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -118,6 +116,7 @@ public class RoomService {
                 .toList();
 
         return new RoomCreateResponse(entryCode,categoryItemList);
+
     }
 
     //카테고리 선택후 방 생성
