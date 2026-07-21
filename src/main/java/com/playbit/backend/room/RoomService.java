@@ -37,6 +37,10 @@ public class RoomService {
         List<Player> players = playerRepository.findByRoom(room);
         List<Mission> missions = missionRepository.findByRoom(room);
 
+        Member member = memberRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+
+
         // 3. 지연 평가(Lazy Evaluation) - 턴 마감 시간 확인 및 턴 넘김 처리
         if (room.getStatus() == RoomStatus.PLAYING
                 && room.getTurnDeadline() != null
@@ -89,6 +93,7 @@ public class RoomService {
                 room.getEntryCode(),
                 room.getStatus(),
                 room.getCategory(),
+                member.getMemberId(),
                 room.getCurrentTurnMemberId(),
                 room.getTurnStartedAt(),
                 room.getTurnDeadline(),
