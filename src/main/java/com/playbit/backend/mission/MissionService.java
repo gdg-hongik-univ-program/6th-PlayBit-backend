@@ -118,12 +118,12 @@ public class MissionService {
         Room room = roomRepository.findByEntryCode(roomCode)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
 
-        if(room.getCurrentTurnMemberId().equals(member.getMemberId()))
-        {throw new RuntimeException("자신의 차례에는 사보타주가 불가합니다.");}
-
         // roomCode와 position으로 mission을 조회한다.
         Mission mission = missionRepository.findByRoomAndPosition(room, position)
                 .orElseThrow(() -> new RuntimeException(("존재하지 않는 미션입니다.")));
+
+        if(room.getCurrentTurnMemberId().equals(member.getMemberId()))
+        {throw new RuntimeException("자신의 차례에는 사보타주가 불가합니다.");}
 
         if(mission.getCompletedBy()==null || mission.getCompletedBy()==member) {
             throw new RuntimeException("상대방이 완료한 미션만 사보타주 가능합니다.");
