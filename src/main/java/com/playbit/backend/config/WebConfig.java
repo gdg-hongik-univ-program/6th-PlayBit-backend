@@ -18,6 +18,7 @@ public class WebConfig implements WebMvcConfigurer{
                 .allowedOrigins(
                         "https://playbit.vercel.app", // 프론트 실제 배포 주소
                         "http://localhost:3000",      // 로컬 테스트용
+                        "http://localhost:5173"       // 로컬 테스트용(Vite)
                         "http://localhost:5173",      // 로컬 테스트용(Vite)
                         "https://essential-family-display.ngrok-free.dev" //ngrok
                 )
