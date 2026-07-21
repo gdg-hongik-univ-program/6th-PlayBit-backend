@@ -19,6 +19,7 @@ public class WebConfig implements WebMvcConfigurer{
                         "https://playbit.vercel.app", // 프론트 실제 배포 주소
                         "http://localhost:3000",      // 로컬 테스트용
                         "http://localhost:5173"       // 로컬 테스트용(Vite)
+
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 // 🚨 여기서 "X-Member-Id"를 반드시 열어줘야 프론트에서 보낸 헤더가 백엔드에 도착해!
