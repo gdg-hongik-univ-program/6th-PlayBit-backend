@@ -94,11 +94,19 @@ public class MissionService {
             if(isGameOver(room, member)) {
 
                 //방 상태를 finished로 바꾸고 승자 기록
-                room.gameFinished(member);
+                room.gameFinished_Not_Draw(member);
                 return new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
             } else {
+
                 room.turnFinished(opponent.getMember().getMemberId());
+
+                // 만약 9개 칸이 다 채워졌는데 무승부이면
+                if(room.getCurrentTurnNumber() == 10L) {
+                    room.gameFinished_Draw();
+                    return new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
+                }
+
                 return new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
             }
         } else  {

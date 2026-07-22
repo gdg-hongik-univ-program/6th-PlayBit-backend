@@ -88,6 +88,10 @@ public class RoomService {
         // 6. 승자 ID 추출 (진행 중일 때는 null)
         Long winnerId = (room.getWinner() != null) ? room.getWinner().getMemberId() : null;
 
+        // 6.5 요청을 보낸 사용자의 member 조회
+        Member member = memberRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(()-> new RuntimeException("존재하지 않는 멤버입니다."));
+
         // 7. 최종 완성된 DTO 반환
         return new EnterRoomResponse(
                 room.getEntryCode(),

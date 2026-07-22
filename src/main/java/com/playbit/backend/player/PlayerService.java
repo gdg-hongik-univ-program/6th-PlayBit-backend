@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +30,16 @@ public class PlayerService {
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
 
-        //게임 상태 검증 로직
-        if(room.getStatus() == RoomStatus.FINISHED) {
-            throw new RuntimeException("종료된 게임입니다.");
+        //해당 멤버가 이미 이 방의 플레이어인지 확인
+        Optional<Player> existingPlayer = playerRepository.findByRoomAndMember(room, member);
+        if(existingPlayer.isPresent()) {
+            return new PlayerJoinResponse(
+                    existingPlayer.get().getPlayerId(),
+                    existingPlayer.get().getMember().getMemberId(),
+                    existingPlayer.get().getRole().name()
+            );
         }
+
         //중복 참가 방지 로직 (혼자서 O, X 다 하는 것 방지)
         if (playerRepository.existsByRoomAndMember(room, member)) {
             throw new RuntimeException("이미 방에 참가한 사용자입니다.");
@@ -54,9 +61,15 @@ public class PlayerService {
             throw new RuntimeException("정원 초과된 방입니다.");
         }
 
+        //게임 상태 검증 로직
+        if(room.getStatus() == RoomStatus.FINISHED) {
+            throw new RuntimeException("종료된 게임입니다.");
+        }
+
         //player DB에 저장
         Player player = new Player(room, member, role);
         playerRepository.save(player);
+
 
         //선공 player 결정 및 게임 시작
         if(playerCount == 1){
