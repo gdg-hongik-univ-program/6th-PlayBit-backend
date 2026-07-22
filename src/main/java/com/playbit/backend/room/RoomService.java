@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -88,10 +89,6 @@ public class RoomService {
         // 6. 승자 ID 추출 (진행 중일 때는 null)
         Long winnerId = (room.getWinner() != null) ? room.getWinner().getMemberId() : null;
 
-        // 6.5 요청을 보낸 사용자의 member 조회
-        Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(()-> new RuntimeException("존재하지 않는 멤버입니다."));
-
         // 7. 최종 완성된 DTO 반환
         return new EnterRoomResponse(
                 room.getEntryCode(),
@@ -143,7 +140,7 @@ public class RoomService {
         //미션 객체 생성 후 DB에 저장
         List<Content> missions = getMissionsByCategory(category);
         for (int i =0; i <9; i++){
-            Mission mission = new Mission(room,(long) i, missions.get(i));
+            Mission mission = new Mission(room,(long) (i+1), missions.get(i));
             missionRepository.save(mission);
         }
 
@@ -152,20 +149,11 @@ public class RoomService {
 
     // 카테고리에 따라 미션 내용 반환해주는 헬퍼 메서드
     private List<Content> getMissionsByCategory(Category category) {
-        List<Content> missions = new ArrayList<>();
 
-        if (category == Category.STUDY) {
-            missions.addAll(Arrays.asList(
-                    Content.STUDY_1, Content.STUDY_2, Content.STUDY_3,
-                    Content.STUDY_4, Content.STUDY_5, Content.STUDY_6,
-                    Content.STUDY_7, Content.STUDY_8, Content.STUDY_9));
-        }
-        else {
-            // 일치하는 카테고리가 없을 경우의 기본값
-            for (int i = 0; i < 9; i++) {
-                missions.add(Content.DEFAULT_MISSION);
-            }
-        }
+        List<Content> missions = Arrays.stream(Content.values())
+                .filter(content -> content.getCategory() == category)
+                .collect(Collectors.toList());
+
         //미션 자동으로 섞기
         Collections.shuffle(missions);
 

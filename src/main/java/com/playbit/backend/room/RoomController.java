@@ -31,7 +31,7 @@ public class RoomController {
                 roomService.enterRoom(entryCode, memberUuid)));
     }
 
-    //빈방 생성
+    //빈 방 생성
     @PostMapping
     public ResponseEntity<ApiResponse<RoomCreateResponse>> createRoom(
             @RequestHeader(value = "X-Member-Id") String memberUuid
