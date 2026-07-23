@@ -81,6 +81,7 @@ public class Room {
     public void gameFinished_Not_Draw(Member member) {
         this.setStatus(RoomStatus.FINISHED);
         this.setWinner(member);
+        this.setIsDraw(false);
     }
 
     public void gameFinished_Draw() {

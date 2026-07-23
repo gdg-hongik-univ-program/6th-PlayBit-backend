@@ -16,8 +16,9 @@ public enum ErrorCode {
 
     //Mission
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "MS001", "미션을 찾을 수 없습니다."),
-    MISSION_CANNOT_SABOTAGE_AT_YOUR_TURN(HttpStatus.NOT_FOUND, "MS002", "자신의 차례에는 사보타주가 불가합니다."),
-    MISSION_CANNOT_SABOTAGE_TO_YOUR_MISSION(HttpStatus.NOT_FOUND, "MS003", "자신이 완료한 미션은 사보타주가 불가합니다."),
+    MISSION_CANNOT_SABOTAGE_AT_YOUR_TURN(HttpStatus.BAD_REQUEST, "MS002", "자신의 차례에는 사보타주가 불가합니다."),
+    MISSION_CANNOT_SABOTAGE_TO_YOUR_MISSION(HttpStatus.BAD_REQUEST, "MS003", "자신이 완료한 미션은 사보타주가 불가합니다."),
+    MISSION_CANNOT_SABOTAGE_TO_UNCOMPLETED_MISSION(HttpStatus.BAD_REQUEST, "MS004", "완료되지 않은 미션에는 사보타주가 불가합니다."),
 
     //Room
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "방을 찾을 수 없습니다."),
