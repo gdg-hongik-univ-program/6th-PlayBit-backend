@@ -1,5 +1,8 @@
 package com.playbit.backend.player;
 
+import com.playbit.backend.common.response.ErrorCode;
+import com.playbit.backend.common.response.exception.BadRequestException;
+import com.playbit.backend.common.response.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
@@ -10,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -23,19 +25,19 @@ public class PlayerService {
     public PlayerJoinResponse registerPlayer(String entryCode, String memberUuid){
         //방 검증 로직
         Room room = roomRepository.findByEntryCode(entryCode)
-                .orElseThrow(() -> new RuntimeException("존재하지 않거나 잘못된 입장 코드입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         //uuid로 멤버 검증 로직
         Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         //게임 상태 검증 로직
         if(room.getStatus() == RoomStatus.FINISHED) {
-            throw new RuntimeException("종료된 게임입니다.");
+            throw new BadRequestException(ErrorCode.ROOM_FINISHED);
         }
         //중복 참가 방지 로직 (혼자서 O, X 다 하는 것 방지)
         if (playerRepository.existsByRoomAndMember(room, member)) {
-            throw new RuntimeException("이미 방에 참가한 사용자입니다.");
+            throw new BadRequestException(ErrorCode.PLAYER_ALREADY_REGISTERED);
         }
 
         //현재 방에 등록된 플레이어 수 확인
@@ -51,7 +53,7 @@ public class PlayerService {
             role = PlayerRole.X;
         } else {
             // 2명 이상일 경우
-            throw new RuntimeException("정원 초과된 방입니다.");
+            throw new BadRequestException(ErrorCode.PLAYER_ROOM_IS_ALREADY_FULL);
         }
 
         //player DB에 저장
@@ -62,7 +64,7 @@ public class PlayerService {
         if(playerCount == 1){
             //방 생성자 정보 가져오기 -> 방 생성자가 무조건 O를 가져와야 할까? -> 그냥 역할 O인 사람 가쟈오기
             Player firstPlayer = playerRepository.findByRoomAndRole(room, PlayerRole.O)
-                    .orElseThrow(()-> new RuntimeException("기존 플레이어를 찾을 수 없습니다."));
+                    .orElseThrow(()-> new NotFoundException(ErrorCode.PLAYER_NOT_FOUND));
             //50% 확률로 선공할 멤버 id 결정(동시성 이슈 존재)
             boolean isOFirst = Math.random() < 0.5;
             Long firstTurnMemberId = isOFirst
