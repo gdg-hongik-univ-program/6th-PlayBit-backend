@@ -27,7 +27,7 @@ public class MissionController {
 
     }
 
-    @PatchMapping("/{position}/sabotaged")
+    @PatchMapping("/{position}/sabotage")
     public ResponseEntity<ApiResponse<RoomDTO>> sabotageMission(
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @PathVariable String entryCode,

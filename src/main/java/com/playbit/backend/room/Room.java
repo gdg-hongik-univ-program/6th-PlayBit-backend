@@ -51,6 +51,8 @@ public class Room {
 
     private Boolean currentTurnSabotaged;
 
+    private Boolean isDraw;
+
     public void startGame(Long firstTurnMemberId ){
         this.status = RoomStatus.PLAYING;
         this.currentTurnMemberId = firstTurnMemberId;
@@ -76,8 +78,13 @@ public class Room {
         this.setCurrentTurnSabotaged(false);
     }
 
-    public void gameFinished(Member member) {
+    public void gameFinished_Not_Draw(Member member) {
         this.setStatus(RoomStatus.FINISHED);
         this.setWinner(member);
+    }
+
+    public void gameFinished_Draw() {
+        this.setStatus(RoomStatus.FINISHED);
+        this.setIsDraw(true);
     }
 }

@@ -16,8 +16,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -109,9 +111,18 @@ public class RoomService {
     //방 생성
     @Transactional
     public RoomCreateResponse createRoom(){
-        // 입장 코드 랜덤 생성
-        String entryCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Room room = new Room(RoomStatus.WAITING, null, entryCode);
+
+        // 1. 필요한 변수 준비 (여기서 바로 사용)
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder code = new StringBuilder();
+
+        // 2. 6자리 추출
+        for (int i = 0; i < 6; i++) {
+            code.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        Room room = new Room(RoomStatus.WAITING, null, code.toString());
         roomRepository.save(room);
 
         //Category Enum의 모든 값을 순회하며 한글 이름까지 추출
@@ -122,7 +133,7 @@ public class RoomService {
                 ))
                 .toList();
 
-        return new RoomCreateResponse(entryCode,categoryItemList);
+        return new RoomCreateResponse(code.toString(),categoryItemList);
 
     }
 
@@ -141,7 +152,7 @@ public class RoomService {
         //미션 객체 생성 후 DB에 저장
         List<Content> missions = getMissionsByCategory(category);
         for (int i =0; i <9; i++){
-            Mission mission = new Mission(room,(long) i, missions.get(i));
+            Mission mission = new Mission(room,(long) (i+1), missions.get(i));
             missionRepository.save(mission);
         }
 
@@ -150,20 +161,11 @@ public class RoomService {
 
     // 카테고리에 따라 미션 내용 반환해주는 헬퍼 메서드
     private List<Content> getMissionsByCategory(Category category) {
-        List<Content> missions = new ArrayList<>();
 
-        if (category == Category.STUDY) {
-            missions.addAll(Arrays.asList(
-                    Content.STUDY_1, Content.STUDY_2, Content.STUDY_3,
-                    Content.STUDY_4, Content.STUDY_5, Content.STUDY_6,
-                    Content.STUDY_7, Content.STUDY_8, Content.STUDY_9));
-        }
-        else {
-            // 일치하는 카테고리가 없을 경우의 기본값
-            for (int i = 0; i < 9; i++) {
-                missions.add(Content.DEFAULT_MISSION);
-            }
-        }
+        List<Content> missions = Arrays.stream(Content.values())
+                .filter(content -> content.getCategory() == category)
+                .collect(Collectors.toList());
+
         //미션 자동으로 섞기
         Collections.shuffle(missions);
 

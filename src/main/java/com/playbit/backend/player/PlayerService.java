@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +32,14 @@ public class PlayerService {
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        //게임 상태 검증 로직
-        if(room.getStatus() == RoomStatus.FINISHED) {
-            throw new BadRequestException(ErrorCode.ROOM_FINISHED);
+        //해당 멤버가 이미 이 방의 플레이어인지 확인
+        Optional<Player> existingPlayer = playerRepository.findByRoomAndMember(room, member);
+        if(existingPlayer.isPresent()) {
+            return new PlayerJoinResponse(
+                    existingPlayer.get().getPlayerId(),
+                    existingPlayer.get().getMember().getMemberId(),
+                    existingPlayer.get().getRole().name()
+            );
         }
         //중복 참가 방지 로직 (혼자서 O, X 다 하는 것 방지)
         if (playerRepository.existsByRoomAndMember(room, member)) {
@@ -54,6 +60,11 @@ public class PlayerService {
         } else {
             // 2명 이상일 경우
             throw new BadRequestException(ErrorCode.PLAYER_ROOM_IS_ALREADY_FULL);
+        }
+
+        //게임 상태 검증 로직
+        if(room.getStatus() == RoomStatus.FINISHED) {
+            throw new RuntimeException("종료된 게임입니다.");
         }
 
         //player DB에 저장
