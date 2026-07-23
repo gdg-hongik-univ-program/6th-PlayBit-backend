@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -107,9 +108,18 @@ public class RoomService {
     //방 생성
     @Transactional
     public RoomCreateResponse createRoom(){
-        // 입장 코드 랜덤 생성
-        String entryCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Room room = new Room(RoomStatus.WAITING, null, entryCode);
+
+        // 1. 필요한 변수 준비 (여기서 바로 사용)
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder code = new StringBuilder();
+
+        // 2. 6자리 추출
+        for (int i = 0; i < 6; i++) {
+            code.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        Room room = new Room(RoomStatus.WAITING, null, code.toString());
         roomRepository.save(room);
 
         //Category Enum의 모든 값을 순회하며 한글 이름까지 추출
@@ -120,7 +130,7 @@ public class RoomService {
                 ))
                 .toList();
 
-        return new RoomCreateResponse(entryCode,categoryItemList);
+        return new RoomCreateResponse(code.toString(),categoryItemList);
 
     }
 
