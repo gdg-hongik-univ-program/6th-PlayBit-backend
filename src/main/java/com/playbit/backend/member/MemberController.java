@@ -1,6 +1,6 @@
 package com.playbit.backend.member;
 
-import com.playbit.backend.common.response.ApiResponse;
+import com.playbit.backend.common.response.DTO.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
