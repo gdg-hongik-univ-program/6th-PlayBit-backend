@@ -1,4 +1,4 @@
-package com.playbit.backend.common.response;
+package com.playbit.backend.common;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

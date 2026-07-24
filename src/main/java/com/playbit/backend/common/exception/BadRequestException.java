@@ -1,6 +1,6 @@
-package com.playbit.backend.common.response.exception;
+package com.playbit.backend.common.exception;
 
-import com.playbit.backend.common.response.ErrorCode;
+import com.playbit.backend.common.ErrorCode;
 import lombok.Getter;
 
 @Getter

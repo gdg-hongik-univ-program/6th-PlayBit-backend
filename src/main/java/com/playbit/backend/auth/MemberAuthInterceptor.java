@@ -1,8 +1,8 @@
-package com.playbit.backend.config;
+package com.playbit.backend.auth;
 
-import com.playbit.backend.common.response.ErrorCode;
-import com.playbit.backend.common.response.exception.BadRequestException;
-import com.playbit.backend.common.response.exception.NotFoundException;
+import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.MemberRepository; // 본인 경로에 맞게 확인
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -36,7 +36,6 @@ public class Mission {
 
     private LocalDateTime completedAt;
 
-
     public Mission(Room room, Long position, Content content){
         this.room = room;
         this.position = position;

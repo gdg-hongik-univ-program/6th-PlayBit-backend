@@ -1,10 +1,9 @@
 package com.playbit.backend.mission;
 
-import com.playbit.backend.common.response.exception.BadRequestException;
-import com.playbit.backend.common.response.exception.NotFoundException;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -200,13 +199,13 @@ public class MissionServiceTest {
         Player player = new Player(room, opponent, null);
 
         Mission mission0 = new Mission();
-        mission0.setPosition(0L);
+        mission0.setPosition(1L);
 
         Mission mission1 = new Mission();
-        mission1.setPosition(1L);
+        mission1.setPosition(2L);
 
         Mission mission2 = new Mission();
-        mission2.setPosition(2L);
+        mission2.setPosition(3L);
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));

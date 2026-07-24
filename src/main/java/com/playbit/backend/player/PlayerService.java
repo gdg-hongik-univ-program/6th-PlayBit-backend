@@ -1,8 +1,8 @@
 package com.playbit.backend.player;
 
-import com.playbit.backend.common.response.ErrorCode;
-import com.playbit.backend.common.response.exception.BadRequestException;
-import com.playbit.backend.common.response.exception.NotFoundException;
+import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
@@ -41,10 +41,6 @@ public class PlayerService {
                     existingPlayer.get().getRole().name()
             );
         }
-        //중복 참가 방지 로직 (혼자서 O, X 다 하는 것 방지)
-        if (playerRepository.existsByRoomAndMember(room, member)) {
-            throw new BadRequestException(ErrorCode.PLAYER_ALREADY_REGISTERED);
-        }
 
         //현재 방에 등록된 플레이어 수 확인
         long playerCount = playerRepository.countByRoom(room);
@@ -64,7 +60,7 @@ public class PlayerService {
 
         //게임 상태 검증 로직
         if(room.getStatus() == RoomStatus.FINISHED) {
-            throw new RuntimeException("종료된 게임입니다.");
+            throw new BadRequestException(ErrorCode.ROOM_FINISHED);
         }
 
         //player DB에 저장

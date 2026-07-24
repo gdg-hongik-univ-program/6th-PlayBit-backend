@@ -1,5 +1,6 @@
 package com.playbit.backend.config;
 
+import com.playbit.backend.auth.MemberAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
