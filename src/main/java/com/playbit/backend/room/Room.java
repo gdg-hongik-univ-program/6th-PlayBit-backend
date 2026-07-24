@@ -33,7 +33,6 @@ public class Room {
 
     private String entryCode;
 
-    @JsonIgnore //테스트 할때 지연로딩, 무한 루프 방지하기(공통 응답 DTO 추가시 삭제)
     @ManyToOne
     @JoinColumn(name = "winner_member_id")
     private Member winner;
