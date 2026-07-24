@@ -1,5 +1,8 @@
 package com.playbit.backend.mission;
 
+import com.playbit.backend.common.response.ErrorCode;
+import com.playbit.backend.common.response.exception.BadRequestException;
+import com.playbit.backend.common.response.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
@@ -69,19 +72,19 @@ public class MissionService {
 
         // uuid로 멤버를 조회한다 (uuid를 사용해 조회하면 성능 이슈)
         Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 멤버입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         // roomCode로 방을 조회한다.
         Room room = roomRepository.findByEntryCode(roomCode)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         // roomCode와 position으로 mission을 조회한다.
         Mission mission = missionRepository.findByRoomAndPosition(room, position)
-                .orElseThrow(() -> new RuntimeException(("존재하지 않는 미션입니다.")));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MISSION_NOT_FOUND));
 
         // 같은 방의 상대방을 조회한다.
         Player opponent = playerRepository.findByRoomAndMemberNot(room, member)
-                .orElseThrow(() -> new RuntimeException(("존재하지 않는 플레이어입니다.")));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_NOT_FOUND));
 
         // 해당 사용자의 턴이 맞는지 검사한다.
         if(room.getCurrentTurnMemberId().equals(member.getMemberId())) {
@@ -110,9 +113,8 @@ public class MissionService {
                 return new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
             }
         } else  {
-            throw new RuntimeException("해당 사용자의 차례가 아닙니다.");
+            throw new BadRequestException(ErrorCode.ROOM_NOT_YOUR_TURN);
         }
-
     }
 
     @Transactional
@@ -120,25 +122,25 @@ public class MissionService {
 
         // uuid로 멤버를 조회한다 (uuid를 사용해 조회하면 성능 이슈)
         Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 멤버입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         // roomCode로 방을 조회한다.
         Room room = roomRepository.findByEntryCode(roomCode)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         // roomCode와 position으로 mission을 조회한다.
         Mission mission = missionRepository.findByRoomAndPosition(room, position)
-                .orElseThrow(() -> new RuntimeException(("존재하지 않는 미션입니다.")));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MISSION_NOT_FOUND));
 
         if(room.getCurrentTurnMemberId().equals(member.getMemberId()))
-        {throw new RuntimeException("자신의 차례에는 사보타주가 불가합니다.");}
+        {throw new BadRequestException(ErrorCode.MISSION_CANNOT_SABOTAGE_AT_YOUR_TURN);}
 
         if(mission.getCompletedBy()==null || mission.getCompletedBy()==member) {
-            throw new RuntimeException("상대방이 완료한 미션만 사보타주 가능합니다.");
+            throw new BadRequestException(ErrorCode.MISSION_CANNOT_SABOTAGE_TO_YOUR_MISSION);
         }
 
         if(room.getCurrentTurnSabotaged()) {
-            throw new RuntimeException("이번 턴에 이미 한 번의 사보타주 기회를 사용하셨습니다.");
+            throw new BadRequestException(ErrorCode.ROOM_ALREADY_SABOTAGED_AT_THIS_TURN);
         }
 
         room.setCurrentTurnSabotaged(true);

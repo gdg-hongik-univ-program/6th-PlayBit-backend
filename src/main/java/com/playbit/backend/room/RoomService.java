@@ -1,5 +1,7 @@
 package com.playbit.backend.room;
 
+import com.playbit.backend.common.response.ErrorCode;
+import com.playbit.backend.common.response.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.Content;
@@ -33,14 +35,14 @@ public class RoomService {
     public EnterRoomResponse enterRoom(String entryCode, String memberUuid){
         // 입장코드 이용한 방 검증
         Room room = roomRepository.findByEntryCode(entryCode)
-                .orElseThrow(() -> new RuntimeException("존재하지 않거나 잘못된 입장 코드입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         // 2. DB에서 플레이어 및 미션 목록 가져오기
         List<Player> players = playerRepository.findByRoom(room);
         List<Mission> missions = missionRepository.findByRoom(room);
 
         Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
 
         // 3. 지연 평가(Lazy Evaluation) - 턴 마감 시간 확인 및 턴 넘김 처리
@@ -53,7 +55,7 @@ public class RoomService {
                     .map(p -> p.getMember().getMemberId())
                     .filter(id -> !id.equals(room.getCurrentTurnMemberId()))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("상대방 플레이어를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_OPPONENT_NOT_FOUND));
 
             // 턴 업데이트
             room.setCurrentTurnMemberId(opponentMemberId);
@@ -139,10 +141,10 @@ public class RoomService {
     @Transactional
     public SetRoomResponse setRoom(String entryCode, String memberUuid, Category category){
         Room room = roomRepository.findByEntryCode(entryCode)
-                .orElseThrow(() -> new RuntimeException("존재하지 않거나 잘못된 입장 코드입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         //카테고리 업데이트
         room.updateCategory(category);
