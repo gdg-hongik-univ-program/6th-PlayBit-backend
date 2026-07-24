@@ -25,12 +25,10 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long playerId;
 
-    @JsonIgnore //테스트 할때 지연로딩, 무한 루프 방지하기(공통 응답 DTO 추가시 삭제)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private Room room;
 
-    @JsonIgnore //테스트 할때 지연로딩, 무한 루프 방지하기(공통 응답 DTO 추가시 삭제)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;

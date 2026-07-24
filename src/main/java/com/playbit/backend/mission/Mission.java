@@ -21,7 +21,6 @@ public class Mission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long missionId;
 
-    @JsonIgnore //테스트 할때 지연로딩, 무한 루프 방지하기(공통 응답 DTO 추가시 삭제)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id" )
     private Room room;
@@ -31,7 +30,6 @@ public class Mission {
     @Enumerated(EnumType.STRING)
     private Content content;
 
-    //@JsonIgnore //테스트 할때 지연로딩, 무한 루프 방지하기(공통 응답 DTO 추가시 삭제)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "completed_by_member_id")
     private Member completedBy;
