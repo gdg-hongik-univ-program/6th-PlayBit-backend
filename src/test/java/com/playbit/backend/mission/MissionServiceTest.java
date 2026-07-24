@@ -4,6 +4,7 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
+import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -216,6 +217,7 @@ public class MissionServiceTest {
         //when & then
         missionService.completeMission(memberUuid, position, roomCode);
 
+
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isEqualTo(member);
         assertThat(room.getIsDraw()).isEqualTo(false);
@@ -259,6 +261,7 @@ public class MissionServiceTest {
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.empty());
+
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(memberUuid, position, roomCode))
