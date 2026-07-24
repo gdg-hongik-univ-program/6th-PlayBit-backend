@@ -1,6 +1,6 @@
 package com.playbit.backend.player;
 
-import com.playbit.backend.common.response.ApiResponse;
+import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,8 +1,7 @@
 package com.playbit.backend.mission;
 
-import com.playbit.backend.common.response.ApiResponse;
+import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
-import com.playbit.backend.room.dto.PlayingRoomDTO;
 import com.playbit.backend.room.dto.RoomDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +26,7 @@ public class MissionController {
 
     }
 
-    @PatchMapping("/{position}/sabotaged")
+    @PatchMapping("/{position}/sabotage")
     public ResponseEntity<ApiResponse<RoomDTO>> sabotageMission(
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @PathVariable String entryCode,

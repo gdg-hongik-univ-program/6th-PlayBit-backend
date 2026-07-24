@@ -1,7 +1,7 @@
-package com.playbit.backend.common.response;
+package com.playbit.backend.common.dto;
 
 import lombok.Getter;
-import org.springframework.web.ErrorResponse;
+
 
 @Getter
 public class ApiResponse<T>{
@@ -22,7 +22,7 @@ public class ApiResponse<T>{
         return new ApiResponse<>(true, data, null);
     }
 
-    public static ApiResponse<Void> error(ErrorResponse error) {
+    public static ApiResponse<ErrorResponse> error(ErrorResponse error) {
         return new ApiResponse<>(false, null, error);
     }
 

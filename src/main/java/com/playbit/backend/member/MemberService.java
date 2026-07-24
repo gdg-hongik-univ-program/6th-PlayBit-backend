@@ -1,5 +1,6 @@
 package com.playbit.backend.member;
 
+import com.playbit.backend.member.dto.MemberDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +19,8 @@ public class MemberService {
         // v4 uuid 생성 (완전히 랜덤 -> 조회 로직 성능 저하 야기할 가능성이 있음)
         UUID uuid = UUID.randomUUID();
 
-        // uuid 중복 확률은 극히 드물어 성능을 위해 중복 검사 로직 생략
-
-        Member member = new Member(uuid.toString());
-        memberRepository.save(member);
+        // uuid 중복 확률은 극히 드물어 성능을 위해 중복 검사 로직 생략하고 바로 등록
+        memberRepository.save(new Member(uuid.toString()));
 
         return new MemberDTO(uuid);
     }

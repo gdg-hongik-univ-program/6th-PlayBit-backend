@@ -1,5 +1,6 @@
 package com.playbit.backend.config;
 
+import com.playbit.backend.auth.MemberAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -23,7 +24,7 @@ public class WebConfig implements WebMvcConfigurer{
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 // 🚨 여기서 "X-Member-Id"를 반드시 열어줘야 프론트에서 보낸 헤더가 백엔드에 도착해!
-                .allowedHeaders("X-Member-Id", "Content-Type", "Authorization")
+                .allowedHeaders("X-Member-Id", "Content-Type", "Authorization", "ngrok-skip-browser-warning")
                 .allowCredentials(true);
     }
 

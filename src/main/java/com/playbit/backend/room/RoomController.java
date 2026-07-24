@@ -1,6 +1,6 @@
 package com.playbit.backend.room;
 
-import com.playbit.backend.common.response.ApiResponse;
+import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.room.dto.CategoryRequest;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
@@ -8,10 +8,7 @@ import com.playbit.backend.room.dto.RoomCreateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @RestController
 @RequestMapping("/api/rooms")
@@ -31,7 +28,7 @@ public class RoomController {
                 roomService.enterRoom(entryCode, memberUuid)));
     }
 
-    //빈방 생성
+    //빈 방 생성
     @PostMapping
     public ResponseEntity<ApiResponse<RoomCreateResponse>> createRoom(
             @RequestHeader(value = "X-Member-Id") String memberUuid
