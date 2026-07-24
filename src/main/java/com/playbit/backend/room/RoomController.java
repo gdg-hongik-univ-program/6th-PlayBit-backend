@@ -1,6 +1,6 @@
 package com.playbit.backend.room;
 
-import com.playbit.backend.common.response.DTO.ApiResponse;
+import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.room.dto.CategoryRequest;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;

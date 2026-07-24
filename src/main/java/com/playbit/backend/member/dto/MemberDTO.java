@@ -1,4 +1,4 @@
-package com.playbit.backend.member;
+package com.playbit.backend.member.dto;
 
 import java.util.UUID;
 

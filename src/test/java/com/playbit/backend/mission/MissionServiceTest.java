@@ -1,10 +1,9 @@
 package com.playbit.backend.mission;
 
-import com.playbit.backend.common.response.exception.BadRequestException;
-import com.playbit.backend.common.response.exception.NotFoundException;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;

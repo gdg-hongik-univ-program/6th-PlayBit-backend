@@ -1,8 +1,8 @@
 package com.playbit.backend.mission;
 
-import com.playbit.backend.common.response.ErrorCode;
-import com.playbit.backend.common.response.exception.BadRequestException;
-import com.playbit.backend.common.response.exception.NotFoundException;
+import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
@@ -49,14 +49,14 @@ public class MissionService {
 
         // 승리하는 경우 등록
         List<Set<Long>> targetCombinations = List.of(
-                Set.of(0L, 1L, 2L),
-                Set.of(3L, 4L, 5L),
-                Set.of(6L, 7L, 8L),
-                Set.of(0L, 3L, 6L),
+                Set.of(1L, 2L, 3L),
+                Set.of(4L, 5L, 6L),
+                Set.of(7L, 8L, 9L),
                 Set.of(1L, 4L, 7L),
                 Set.of(2L, 5L, 8L),
-                Set.of(0L, 4L, 8L),
-                Set.of(2L, 4L, 6L)
+                Set.of(3L, 6L, 9L),
+                Set.of(1L, 5L, 9L),
+                Set.of(3L, 5L, 7L)
         );
 
         // 가져온 리스트를 '집합(Set)'으로 변환 (검색 속도 O(1)로 향상)

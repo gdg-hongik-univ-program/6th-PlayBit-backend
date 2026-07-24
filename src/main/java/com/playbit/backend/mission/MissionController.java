@@ -1,6 +1,6 @@
 package com.playbit.backend.mission;
 
-import com.playbit.backend.common.response.DTO.ApiResponse;
+import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.room.dto.RoomDTO;
 import lombok.RequiredArgsConstructor;

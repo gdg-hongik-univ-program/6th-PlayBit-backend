@@ -1,4 +1,4 @@
-package com.playbit.backend.common.response.DTO;
+package com.playbit.backend.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

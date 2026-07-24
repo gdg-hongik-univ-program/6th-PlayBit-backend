@@ -1,7 +1,7 @@
 package com.playbit.backend.room;
 
-import com.playbit.backend.common.response.ErrorCode;
-import com.playbit.backend.common.response.exception.NotFoundException;
+import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.Content;
@@ -112,17 +112,21 @@ public class RoomService {
     @Transactional
     public RoomCreateResponse createRoom(){
 
-        // 1. 필요한 변수 준비 (여기서 바로 사용)
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         SecureRandom random = new SecureRandom();
         StringBuilder code = new StringBuilder();
 
-        // 2. 6자리 추출
-        for (int i = 0; i < 6; i++) {
-            code.append(chars.charAt(random.nextInt(chars.length())));
-        }
+        // 중복되지 않는 코드가 생성될 때까지 반복
+        do {
+            code.delete(0, code.length());
+            // 6자리 입장 코드 추출
+            for (int i = 0; i < 6; i++) {
+                code.append(chars.charAt(random.nextInt(chars.length())));
+            }
+        } while (roomRepository.findByEntryCode(code.toString()).isEmpty());
 
         Room room = new Room(RoomStatus.WAITING, null, code.toString());
+
         roomRepository.save(room);
 
         //Category Enum의 모든 값을 순회하며 한글 이름까지 추출
