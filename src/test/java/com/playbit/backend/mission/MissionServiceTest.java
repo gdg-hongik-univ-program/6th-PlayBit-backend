@@ -1,5 +1,7 @@
 package com.playbit.backend.mission;
 
+import com.playbit.backend.common.response.exception.BadRequestException;
+import com.playbit.backend.common.response.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
@@ -41,7 +43,7 @@ public class MissionServiceTest {
     private MissionService missionService;
 
     @Test
-    @DisplayName("존재하지 않는 유저가 미션 완료를 누르면 UserNotFoundException 발생")
+    @DisplayName("존재하지 않는 유저가 미션 완료를 누르면 NotFoundException 발생")
     void completeMission_userNotFound() {
 
         //given
@@ -54,15 +56,15 @@ public class MissionServiceTest {
         //when & then
 
         assertThatThrownBy(()->missionService.completeMission(memberUuid, position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 멤버입니다.");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("사용자를 찾을 수 없습니다.");
 
         verify(roomRepository, never()).findByEntryCode(anyString());
         verify(missionRepository, never()).findByRoomAndPosition(any(), anyLong());
     }
 
     @Test
-    @DisplayName("존재하지 않는 방으로 미션 완료 요청이 들어오면 RoomNotFoundException이 발생")
+    @DisplayName("존재하지 않는 방으로 미션 완료 요청이 들어오면 NotFoundException 발생")
     void completeMission_roomNotFound() {
         //given
         String memberUuid = UUID.randomUUID().toString();
@@ -74,15 +76,15 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.completeMission(memberUuid, position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 방입니다.");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("방을 찾을 수 없습니다.");
 
         verify(missionRepository, never()).findByRoomAndPosition(any(), anyLong());
         verify(playerRepository, never()).findByRoomAndMemberNot(any(), any());
     }
 
     @Test
-    @DisplayName("존재하지 않는 미션으로 미션 완료 요청이 들어오면 MissionNotFoundException이 발생")
+    @DisplayName("존재하지 않는 미션으로 미션 완료 요청이 들어오면 NotFoundException이 발생")
     void completeMission_missionNotFound() {
 
         //given
@@ -96,14 +98,14 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.completeMission(memberUuid, position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 미션입니다.");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("미션을 찾을 수 없습니다.");
 
         verify(playerRepository, never()).findByRoomAndMemberNot(any(), any());
     }
 
     @Test
-    @DisplayName("미션 완료 요청이 들어왔는데 상대방이 없으면 OpponentNotFoundException이 발생")
+    @DisplayName("미션 완료 요청이 들어왔는데 상대방이 없으면 NotFoundException이 발생")
     void completeMission_playerNotFound() {
 
         //given
@@ -111,7 +113,7 @@ public class MissionServiceTest {
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Member member =  new Member(1L, memberUuid);
-        Room room = new Room(1L, null, null, null, null, 1L, null, null, null, null);
+        Room room = new Room(1L, null, null, null, null, 1L, null, null, null, null, null);
         Mission mission = new Mission();
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.of(member));
@@ -121,8 +123,8 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.completeMission(memberUuid, position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 플레이어입니다.");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("플레이어를 찾을 수 없습니다.");
 
         assertThat(mission.getCompletedBy()).isNull();
         assertThat(mission.getCompletedAt()).isNull();
@@ -130,7 +132,7 @@ public class MissionServiceTest {
     }
 
     @Test
-    @DisplayName("미션 완료 요청이 들어왔는데 해당 사용자의 차례가 아니면 RuntimeException이 발생")
+    @DisplayName("미션 완료 요청이 들어왔는데 해당 사용자의 차례가 아니면 BadRequestException이 발생")
     void completeMission_turnNotCorrect() {
 
         //given
@@ -138,7 +140,7 @@ public class MissionServiceTest {
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Member member =  new Member(1L, memberUuid);
-        Room room = new Room(2L, null, null, null, null, 3L, null, null, null, null);
+        Room room = new Room(2L, null, null, null, null, 3L, null, null, null, null, null);
         Mission mission = new Mission();
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.of(member));
@@ -148,7 +150,7 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.completeMission(memberUuid, position, roomCode))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BadRequestException.class)
                 .hasMessage("해당 사용자의 차례가 아닙니다.");
 
     }
@@ -163,7 +165,7 @@ public class MissionServiceTest {
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Member member =  new Member(1L, memberUuid);
         Member opponent = new Member(7L, null);
-        Room room = new Room(2L, null, null, null, null, 1L, 2L, null, null, true);
+        Room room = new Room(2L, null, null, null, null, 1L, 2L, null, null, true, null);
         Mission mission = new Mission();
         Player player = new Player(room, opponent, null);
 
@@ -184,8 +186,8 @@ public class MissionServiceTest {
     }
 
     @Test
-    @DisplayName("올바른 미션 완료 요청이 들어오고 게임이 끝남")
-    void completeMission_gameOver() {
+    @DisplayName("올바른 미션 완료 요청이 들어오고 승패가 결정되어 게임이 끝남")
+    void completeMission_gameOver_Not_Draw() {
 
         //given
         String memberUuid = UUID.randomUUID().toString();
@@ -193,7 +195,7 @@ public class MissionServiceTest {
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Member member =  new Member(1L, memberUuid);
         Member opponent = new Member(7L, null);
-        Room room = new Room(2L, RoomStatus.PLAYING, null, null, null, 1L, 2L, null, null, true);
+        Room room = new Room(2L, RoomStatus.PLAYING, null, null, null, 1L, 2L, null, null, true, null);
         Mission mission = new Mission();
         Player player = new Player(room, opponent, null);
 
@@ -215,13 +217,41 @@ public class MissionServiceTest {
         //when & then
         missionService.completeMission(memberUuid, position, roomCode);
 
-
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isEqualTo(member);
+        assertThat(room.getIsDraw()).isEqualTo(false);
     }
 
     @Test
-    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 유저가 보낸 요청이면 RuntimeException 발생")
+    @DisplayName("올바른 미션 완료 요청이 들어오고 게임이 무승부로 끝남")
+    void completeMission_gameOver_Draw() {
+
+        //given
+        String memberUuid = UUID.randomUUID().toString();
+        long position = 0L;
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        Member member =  new Member(1L, memberUuid);
+        Member opponent = new Member(7L, null);
+        Room room = new Room(2L, RoomStatus.PLAYING, null, null, null, 1L, 9L, null, null, true, null);
+        Mission mission = new Mission();
+        Player player = new Player(room, opponent, null);
+
+        when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.of(member));
+        when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
+        when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(any(), any())).thenReturn(Optional.of(player));
+        when(missionRepository.findByRoomAndCompletedBy(any(), any())).thenReturn(List.of());
+
+        //when & then
+        missionService.completeMission(memberUuid, position, roomCode);
+
+        assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
+        assertThat(room.getWinner()).isNull();
+        assertThat(room.getIsDraw()).isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 유저가 보낸 요청이면 NotFoundException 발생")
     void sabotageMission_memberNotFound() {
 
         //given
@@ -231,19 +261,17 @@ public class MissionServiceTest {
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.empty());
 
-
         //when & then
-
         assertThatThrownBy(()->missionService.sabotageMission(memberUuid, position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 멤버입니다.");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("사용자를 찾을 수 없습니다.");
 
         verify(roomRepository, never()).findByEntryCode(any());
         verify(missionRepository, never()).findByRoomAndPosition(any(), anyLong());
     }
 
     @Test
-    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 방에 보낸 요청이면 RuntimeException 발생")
+    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 방에 보낸 요청이면 NotFoundException 발생")
     void sabotageMission_roomNotFound() {
 
         //given
@@ -256,14 +284,14 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 방입니다.");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("방을 찾을 수 없습니다.");
 
         verify(missionRepository, never()).findByRoomAndPosition(any(), anyLong());
     }
 
     @Test
-    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 미션에 보낸 요청이면 RuntimeException 발생")
+    @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 미션에 보낸 요청이면 NotFoundException 발생")
     void sabotageMission_missionNotFound() {
 
         //given
@@ -271,7 +299,7 @@ public class MissionServiceTest {
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         Member member = new Member(1L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
-        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 7L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 7L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
@@ -279,14 +307,14 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 미션입니다.");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("미션을 찾을 수 없습니다.");
 
         assertThat(room.getCurrentTurnSabotaged()).isFalse();
     }
 
     @Test
-    @DisplayName("사보타주 요청이 들어왔는데 자신의 차례에 보낸 요청이면 RuntimeException 발생")
+    @DisplayName("사보타주 요청이 들어왔는데 자신의 차례에 보낸 요청이면 BadRequestException 발생")
     void sabotageMission_cannotSabotageAtYourTurn() {
 
         //given
@@ -295,7 +323,7 @@ public class MissionServiceTest {
         Member member = new Member(7L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
-        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 7L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 7L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
         Mission mission = new Mission();
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
@@ -304,7 +332,7 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BadRequestException.class)
                 .hasMessage("자신의 차례에는 사보타주가 불가합니다.");
 
         assertThat(room.getCurrentTurnSabotaged()).isFalse();
@@ -312,7 +340,7 @@ public class MissionServiceTest {
     }
 
     @Test
-    @DisplayName("사보타주 요청이 들어왔는데 아무도 완료하지 않은 미션에 보낸 요청이면 RuntimeException 발생")
+    @DisplayName("사보타주 요청이 들어왔는데 아무도 완료하지 않은 미션에 보낸 요청이면 BadRequestException 발생")
     void sabotageMission_cannotSabotageToUncompletedMission() {
 
         //given
@@ -321,7 +349,7 @@ public class MissionServiceTest {
         Member member = new Member(7L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
-        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
         Mission mission = new Mission(35L, room, 4L, null, null, null);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
@@ -330,15 +358,15 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("상대방이 완료한 미션만 사보타주 가능합니다.");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("완료되지 않은 미션에는 사보타주가 불가합니다.");
 
         assertThat(room.getCurrentTurnSabotaged()).isFalse();
         assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusDays(1L));
     }
 
     @Test
-    @DisplayName("사보타주 요청이 들어왔는데 내가 완료한 미션에 보낸 요청이면 RuntimeException 발생")
+    @DisplayName("사보타주 요청이 들어왔는데 내가 완료한 미션에 보낸 요청이면 BadRequestException 발생")
     void sabotageMission_cannotSabotageToYourMission() {
 
         //given
@@ -347,7 +375,7 @@ public class MissionServiceTest {
         Member member = new Member(7L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
-        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
         Mission mission = new Mission(35L, room, 4L, null, member, null);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
@@ -356,8 +384,8 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("상대방이 완료한 미션만 사보타주 가능합니다.");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("자신이 완료한 미션은 사보타주가 불가합니다.");
 
         assertThat(room.getCurrentTurnSabotaged()).isFalse();
         assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusDays(1L));
@@ -374,7 +402,7 @@ public class MissionServiceTest {
         Member member = new Member(7L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
-        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusHours(16L), true);
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusHours(16L), true, null);
         Mission mission = new Mission(35L, room, 4L, null, opponent, null);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
@@ -383,8 +411,8 @@ public class MissionServiceTest {
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("이번 턴에 이미 한 번의 사보타주 기회를 사용하셨습니다.");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("이번 턴에 이미 한 번의 사보타주 기회를 사용하였습니다.");
 
     }
 
@@ -399,7 +427,7 @@ public class MissionServiceTest {
         Member member = new Member(7L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
-        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false);
+        Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
         Mission mission = new Mission(35L, room, 4L, null, opponent, turnStartedAt);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));

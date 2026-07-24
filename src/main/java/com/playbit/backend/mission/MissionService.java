@@ -40,7 +40,6 @@ public class MissionService {
     }
 
     public boolean isGameOver(Room room, Member member) {
-
         // 해당 멤버가 완료한 칸의 position들을 가져와 배열에 오름차순으로 저장
         List<Long> list = missionRepository.findByRoomAndCompletedBy(room, member)
                 .stream()
@@ -69,7 +68,6 @@ public class MissionService {
 
     @Transactional
     public MissionCompleteResponse completeMission(String memberUuid, long position, String roomCode) {
-
         // uuid로 멤버를 조회한다 (uuid를 사용해 조회하면 성능 이슈)
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -132,13 +130,20 @@ public class MissionService {
         Mission mission = missionRepository.findByRoomAndPosition(room, position)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MISSION_NOT_FOUND));
 
+        // 자기 턴에 사보타주 요청이 오면 에러 발생
         if(room.getCurrentTurnMemberId().equals(member.getMemberId()))
         {throw new BadRequestException(ErrorCode.MISSION_CANNOT_SABOTAGE_AT_YOUR_TURN);}
 
-        if(mission.getCompletedBy()==null || mission.getCompletedBy()==member) {
+        // 아무도 완료하지 않았거나, 자신이 완료한 미션에 사보타주 요청을 보내면 에러 발생
+        if(mission.getCompletedBy()==null) {
+            throw new BadRequestException(ErrorCode.MISSION_CANNOT_SABOTAGE_TO_UNCOMPLETED_MISSION);
+        }
+
+        if(mission.getCompletedBy()==member) {
             throw new BadRequestException(ErrorCode.MISSION_CANNOT_SABOTAGE_TO_YOUR_MISSION);
         }
 
+        // 이미 이번 턴에 사보타주를 한 번 했다면 에러 발생
         if(room.getCurrentTurnSabotaged()) {
             throw new BadRequestException(ErrorCode.ROOM_ALREADY_SABOTAGED_AT_THIS_TURN);
         }
