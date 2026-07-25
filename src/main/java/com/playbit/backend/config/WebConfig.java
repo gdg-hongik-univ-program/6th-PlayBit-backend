@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer{
     public void addCorsMappings(CorsRegistry registry){
         registry.addMapping("/**")
                 .allowedOrigins(
-                        "https://playbit.vercel.app", // 프론트 실제 배포 주소
+                        "https://playbit-play-bit.vercel.app", // 프론트 실제 배포 주소
                         "http://localhost:3000",      // 로컬 테스트용
                         "http://localhost:5173",      // 로컬 테스트용(Vite)
                         "https://essential-family-display.ngrok-free.dev" //ngrok
