@@ -51,9 +51,10 @@ public class Room {
 
     private Boolean isDraw;
 
-    public void startGame(Long firstTurnMemberId ){
+    public void startGame(Long firstTurnMemberId){
         this.status = RoomStatus.PLAYING;
         this.currentTurnMemberId = firstTurnMemberId;
+        this.currentTurnNumber = 1L;
         this.turnStartedAt = LocalDateTime.now();
         this.turnDeadline = LocalDateTime.now().plusHours(24);
     }
