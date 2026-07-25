@@ -13,7 +13,7 @@ public enum Category {
     WORKOUT("운동"),
     HEALTH("건강"),
     HOBBY("취미"),
-    DAILYLIFE("일상생활");
+    LIFE("일상생활");
 
     private final String description;
 }
