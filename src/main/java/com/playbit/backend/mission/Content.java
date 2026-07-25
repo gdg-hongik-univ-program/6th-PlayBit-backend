@@ -54,15 +54,15 @@ public enum Content {
     HOBBY_9(Category.HOBBY, "오늘 기분 한 줄 적기"),
 
     // 일상생활
-    DAILYLIFE_1(Category.DAILYLIFE, "침대 정리하기"),
-    DAILYLIFE_2(Category.DAILYLIFE, "책상 정리 5분 하기"),
-    DAILYLIFE_3(Category.DAILYLIFE, "쓰레기 버리기"),
-    DAILYLIFE_4(Category.DAILYLIFE, "창문 열어 환기하기"),
-    DAILYLIFE_5(Category.DAILYLIFE, "컵 하나 설거지하기"),
-    DAILYLIFE_6(Category.DAILYLIFE, "오늘 할 일 3개 적기"),
-    DAILYLIFE_7(Category.DAILYLIFE, "방 한 곳 정리하기"),
-    DAILYLIFE_8(Category.DAILYLIFE, "휴대폰 화면 닦기"),
-    DAILYLIFE_9(Category.DAILYLIFE, "가방 정리하기");
+    LIFE_1(Category.LIFE, "침대 정리하기"),
+    LIFE_2(Category.LIFE, "책상 정리 5분 하기"),
+    LIFE_3(Category.LIFE, "쓰레기 버리기"),
+    LIFE_4(Category.LIFE, "창문 열어 환기하기"),
+    LIFE_5(Category.LIFE, "컵 하나 설거지하기"),
+    LIFE_6(Category.LIFE, "오늘 할 일 3개 적기"),
+    LIFE_7(Category.LIFE, "방 한 곳 정리하기"),
+    LIFE_8(Category.LIFE, "휴대폰 화면 닦기"),
+    LIFE_9(Category.LIFE, "가방 정리하기");
 
 
     private final Category category;
