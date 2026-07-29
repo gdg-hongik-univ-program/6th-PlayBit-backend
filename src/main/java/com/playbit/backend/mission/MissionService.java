@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -109,7 +110,7 @@ public class MissionService {
             }
 
             // 💡 리턴하기 직전, 방에 있는 사람들에게 미션 완료 알림 발송
-            sseService.broadcastToRoom(roomCode, "MISSION_COMPLETED");
+            sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_COMPLETED"));
 
             return response;
 
@@ -156,7 +157,7 @@ public class MissionService {
         room.setTurnDeadline(room.getTurnDeadline().minusHours(6));
 
         // 💡 리턴하기 직전, 사보타주 발생 알림 발송
-        sseService.broadcastToRoom(roomCode, "MISSION_SABOTAGED");
+        sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
 
         return PlayingRoomDTO.from(room);
     }

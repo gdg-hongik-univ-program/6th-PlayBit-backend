@@ -7,6 +7,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/*
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer{
@@ -36,4 +37,4 @@ public class WebConfig implements WebMvcConfigurer{
                 // 아래는 예시니까, 실제 회원을 생성하는 API 경로로 수정해줘.
                 .excludePathPatterns("/api/members");
     }
-}
+}*/

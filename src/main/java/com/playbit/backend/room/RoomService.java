@@ -101,8 +101,8 @@ public class RoomService {
         Long winnerId = (room.getWinner() != null) ? room.getWinner().getMemberId() : null;
 
         // 업데이트 변수가 true 라면 방 전체 유저에게 화면을 갱신하라고 SSE 알림 발송
-            if(isRoomUpdated){
-                sseService.broadcastToRoom(entryCode, "TURN_TIMEOUT_UPDATED");
+            if (isRoomUpdated) {
+                sseService.broadcastToRoom(entryCode, Map.of("message", "TURN_TIMEOUT_UPDATED"));
             }
 
         // 7. 최종 완성된 DTO 반환
