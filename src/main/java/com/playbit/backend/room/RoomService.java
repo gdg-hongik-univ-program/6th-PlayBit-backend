@@ -12,6 +12,7 @@ import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
+import com.playbit.backend.sse.SseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,40 +30,47 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final MemberRepository memberRepository;
     private final MissionRepository missionRepository;
+    private final SseService sseService;
 
     //방 입장하기
-    @Transactional
-    public EnterRoomResponse enterRoom(String entryCode, String memberUuid){
-        // 입장코드 이용한 방 검증
-        Room room = roomRepository.findByEntryCode(entryCode)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
+        @Transactional
+        public EnterRoomResponse enterRoom(String entryCode, String memberUuid){
+            // 입장코드 이용한 방 검증
+            Room room = roomRepository.findByEntryCode(entryCode)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
-        // 2. DB에서 플레이어 및 미션 목록 가져오기
-        List<Player> players = playerRepository.findByRoom(room);
-        List<Mission> missions = missionRepository.findByRoom(room);
+            // 2. DB에서 플레이어 및 미션 목록 가져오기
+            List<Player> players = playerRepository.findByRoom(room);
+            List<Mission> missions = missionRepository.findByRoom(room);
 
-        Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            Member member = memberRepository.findByMemberUuid(memberUuid)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
 
-        // 3. 지연 평가(Lazy Evaluation) - 턴 마감 시간 확인 및 턴 넘김 처리
-        if (room.getStatus() == RoomStatus.PLAYING
-                && room.getTurnDeadline() != null
-                && LocalDateTime.now().isAfter(room.getTurnDeadline())) {
+            // SSE 알림을 위해 방 상태 추적하는 변수
+            boolean isRoomUpdated = false;
 
-            // 현재 턴이 아닌 사람 = 다음 턴을 받을 상대방 찾기
-            Long opponentMemberId = players.stream()
-                    .map(p -> p.getMember().getMemberId())
-                    .filter(id -> !id.equals(room.getCurrentTurnMemberId()))
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_OPPONENT_NOT_FOUND));
+            // 3. 지연 평가(Lazy Evaluation) - 턴 마감 시간 확인 및 턴 넘김 처리
+            if (room.getStatus() == RoomStatus.PLAYING
+                    && room.getTurnDeadline() != null
+                    && LocalDateTime.now().isAfter(room.getTurnDeadline())) {
 
-            // 턴 업데이트
-            room.setCurrentTurnMemberId(opponentMemberId);
-            room.setTurnStartedAt(LocalDateTime.now());
-            room.setTurnDeadline(LocalDateTime.now().plusHours(24)); // 다음 턴의 제한 시간 (예: 24시간)
-            room.setCurrentTurnSabotaged(false); // 사보타주 상태 초기화
-        }
+                // 현재 턴이 아닌 사람 = 다음 턴을 받을 상대방 찾기
+                Long opponentMemberId = players.stream()
+                        .map(p -> p.getMember().getMemberId())
+                        .filter(id -> !id.equals(room.getCurrentTurnMemberId()))
+                        .findFirst()
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_OPPONENT_NOT_FOUND));
+
+                // 턴 업데이트
+                room.setCurrentTurnMemberId(opponentMemberId);
+                room.setTurnStartedAt(LocalDateTime.now());
+                room.setTurnDeadline(LocalDateTime.now().plusHours(24)); // 다음 턴의 제한 시간 (예: 24시간)
+                room.setCurrentTurnSabotaged(false); // 사보타주 상태 초기화
+
+                // 턴이 넘어갔으므로 업데이트 변수 true
+                isRoomUpdated = true;
+            }
 
         // 4. Mission 엔티티 -> MissionItem DTO 변환
         List<EnterRoomResponse.MissionItem> missionItems = missions.stream()
@@ -91,6 +99,11 @@ public class RoomService {
 
         // 6. 승자 ID 추출 (진행 중일 때는 null)
         Long winnerId = (room.getWinner() != null) ? room.getWinner().getMemberId() : null;
+
+        // 업데이트 변수가 true 라면 방 전체 유저에게 화면을 갱신하라고 SSE 알림 발송
+            if (isRoomUpdated) {
+                sseService.broadcastToRoom(entryCode, Map.of("message", "TURN_TIMEOUT_UPDATED"));
+            }
 
         // 7. 최종 완성된 DTO 반환
         return new EnterRoomResponse(

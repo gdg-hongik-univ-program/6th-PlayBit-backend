@@ -4,6 +4,7 @@ import com.playbit.backend.room.Room;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 
 @Getter
@@ -12,6 +13,7 @@ public class PlayingRoomDTO extends RoomDTO {
     private Long currentTurnMemberId;
     private Long currentTurnNumber;
     private LocalDateTime turnStartedAt;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime turnDeadline;
     private Boolean currentTurnSabotaged;
 
