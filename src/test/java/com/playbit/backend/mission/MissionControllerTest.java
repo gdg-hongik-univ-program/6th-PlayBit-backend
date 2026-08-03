@@ -19,6 +19,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.nullValue;
@@ -160,6 +162,11 @@ public class MissionControllerTest {
         given(memberAuthInterceptor.preHandle(any(), any(), any()))
                 .willReturn(true);
 
+        System.out.println(completedAt
+                .minusHours(6L)			 // 6시간 앞당김
+                .truncatedTo(ChronoUnit.MICROS)      // 마이크로초까지만 남김
+                .format(MICROSECONDS_FMT) );
+
         //when&then
         mockMvc.perform(patch("/api/rooms/{entryCode}/missions/{position}/sabotage", entryCode, 3L)
                         .header("X-Member-Id", member.getMemberUuid())
@@ -171,7 +178,20 @@ public class MissionControllerTest {
                 .andExpect(jsonPath("$.data.currentTurnNumber").value(4L))
                 .andExpect(jsonPath("$.data.currentTurnSabotaged").value(true))
                 .andExpect(jsonPath("$.data.turnStartedAt").isNotEmpty())
-                .andExpect(jsonPath("$.data.turnDeadline").value(completedAt.minusHours(6L).toString()))
+                .andExpect(
+                        jsonPath("$.data.turnDeadline")
+                                .value(
+                                        completedAt
+                                                .minusHours(6L)			 // 6시간 앞당김
+                                                .truncatedTo(ChronoUnit.MICROS)      // 마이크로초까지만 남김
+                                                .format(MICROSECONDS_FMT)            // 6자리 고정 출력
+                                )
+                )
                 .andExpect(jsonPath("$.data.status").value(RoomStatus.PLAYING.toString()));
+
+
     }
+
+    private static final DateTimeFormatter MICROSECONDS_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 }
