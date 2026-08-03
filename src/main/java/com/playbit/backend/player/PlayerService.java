@@ -9,10 +9,12 @@ import com.playbit.backend.player.dto.PlayerJoinResponse;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.RoomStatus;
+import com.playbit.backend.sse.SseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -21,6 +23,7 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final RoomRepository roomRepository;
     private final MemberRepository memberRepository;
+    private final SseService sseService;
 
     @Transactional
     public PlayerJoinResponse registerPlayer(String entryCode, String memberUuid){
@@ -79,6 +82,9 @@ public class PlayerService {
                     : member.getMemberId();
 
             room.startGame(firstTurnMemberId);
+
+            // 게임 시작 됨 알림을 방 전체에 전송
+            sseService.broadcastToRoom(entryCode, Map.of("message", "GAME_STARTED"));
         }
         return new PlayerJoinResponse(
                 player.getPlayerId(),
