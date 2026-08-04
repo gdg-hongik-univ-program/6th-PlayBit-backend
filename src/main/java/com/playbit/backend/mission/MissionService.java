@@ -7,6 +7,7 @@ import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.mission.dto.MissionDTO;
+import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -35,6 +36,7 @@ public class MissionService {
     private final RoomRepository roomRepository;
     private final PlayerRepository playerRepository;
     private final SseService sseService;
+    private final NotificationService notificationService;
 
 
     public boolean isGameOver(Room room, Member member) {
@@ -97,6 +99,7 @@ public class MissionService {
                 room.gameFinished_Not_Draw(member);
                 response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
+
             } else {
                 room.turnFinished(opponent.getMember().getMemberId());
 
@@ -106,6 +109,11 @@ public class MissionService {
                     response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
                 } else {
                     response = new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
+
+                    // 게임 안 끝나고 턴만 넘어갈 때 알림 발송
+                    Member opponentMember = memberRepository.findByMemberId(opponent.getMember().getMemberId())
+                                    .orElseThrow(()-> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+                    notificationService.missionCompleteNotification(room, opponentMember);
                 }
             }
 
