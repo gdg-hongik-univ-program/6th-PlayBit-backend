@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 
 @RestController
-@Tag(name = "Subscription API", description = "알림 관련 API입니다.")
+@Tag(name = "Subscription API", description = "구독 관련 API입니다.")
 @RequestMapping("api/subscriptions")
 @RequiredArgsConstructor
 public class WebPushController {
@@ -23,7 +23,7 @@ public class WebPushController {
 
     @PostMapping
     @Operation(summary = "구독 정보 저장", description = "알림을 허용한 사용자의 구독 정보를 저장합니다.")
-    public ResponseEntity<ApiResponse<?>> createSubscription(
+    public ResponseEntity<ApiResponse<Subscription>> createSubscription(
             Subscription subscription,
             @RequestHeader(value = "X-Member-Id") String memberUuid)
     {
