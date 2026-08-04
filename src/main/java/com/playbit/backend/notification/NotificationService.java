@@ -29,7 +29,7 @@ public class NotificationService {
     public void missionCompleteNotification(Room room, Member opponent) {
 
         // 상대방의 구독 정보 가져오기
-        List<WebPushSubscription> byMemberId = webPushRepository.findByMemberId(opponent.getMemberId());
+        List<WebPushSubscription> byMemberId = webPushRepository.findByMemberMemberId(opponent.getMemberId());
 
         // 알림 생성하기
         Notification notification = Notification.builder()
@@ -68,7 +68,7 @@ public class NotificationService {
         // 멤버들의 구독 정보 가져오기
         List<WebPushSubscription> subscriptions = players.stream()
                 .map(Member::getMemberId)
-                .flatMap(memberId -> webPushRepository.findByMemberId(memberId).stream())
+                .flatMap(memberId -> webPushRepository.findByMemberMemberId(memberId).stream())
                 .toList();
 
         // 멤버들마다 알림 생성하고 저장하기
@@ -109,7 +109,7 @@ public class NotificationService {
          // 멤버들의 구독 정보 가져오기
         List<WebPushSubscription> subscriptions = players.stream()
                 .map(Member::getMemberId)
-                .flatMap(memberId -> webPushRepository.findByMemberId(memberId).stream())
+                .flatMap(memberId -> webPushRepository.findByMemberMemberId(memberId).stream())
                 .toList();
 
         // 멤버들마다 알림 생성하고 저장하기
@@ -145,7 +145,7 @@ public class NotificationService {
     public void sabotageCompleteNotification(Room room, Member opponent) {
 
         // 상대방의 구독 정보 가져오기
-        List<WebPushSubscription> byMemberId = webPushRepository.findByMemberId(opponent.getMemberId());
+        List<WebPushSubscription> byMemberId = webPushRepository.findByMemberMemberId(opponent.getMemberId());
 
         // 알림 생성하기
         Notification notification = Notification.builder()

@@ -12,11 +12,13 @@ import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
 import nl.martijndwars.webpush.Subscription;
 import org.apache.http.HttpResponse;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.security.Security;
 
 @Service
 @Slf4j
@@ -38,6 +40,8 @@ public class WebPushService {
 
     @PostConstruct
     public void init() throws Exception {
+        // BouncyCastle을 JVM Security Provider에 등록 (web-push 라이브러리가 'BC' provider를 필요로 함)
+        Security.addProvider(new BouncyCastleProvider());
         pushService = new PushService(publicKey, privateKey, subject);
     }
 

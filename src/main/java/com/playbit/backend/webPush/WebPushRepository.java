@@ -8,5 +8,5 @@ import java.util.List;
 @Repository
 public interface WebPushRepository extends JpaRepository<WebPushSubscription, Long> {
 
-    List<WebPushSubscription> findByMemberId(Long id);
+    List<WebPushSubscription> findByMemberMemberId(Long id);
 }

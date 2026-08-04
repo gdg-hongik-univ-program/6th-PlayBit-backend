@@ -4,6 +4,7 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
+import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.sse.SseService; // 💡 SseService import 추가
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
@@ -36,6 +37,8 @@ public class MissionServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+    @Mock
+    private NotificationService notificationService;
     @Mock
     private RoomRepository roomRepository;
     @Mock
@@ -178,6 +181,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
         when(playerRepository.findByRoomAndMemberNot(any(), any())).thenReturn(Optional.of(player));
         when(missionRepository.findByRoomAndCompletedBy(room, member)).thenReturn(Collections.EMPTY_LIST);
+        when(memberRepository.findByMemberId(opponent.getMemberId())).thenReturn(Optional.of(opponent));
 
         //when & then
         missionService.completeMission(memberUuid, position, roomCode);
@@ -344,6 +348,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
@@ -370,6 +375,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
@@ -396,6 +402,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
@@ -423,6 +430,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new  Player()));
 
         //when & then
         assertThatThrownBy(()->missionService.sabotageMission(member.getMemberUuid(), position, roomCode))
@@ -448,6 +456,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         missionService.sabotageMission(member.getMemberUuid(), position, roomCode);
