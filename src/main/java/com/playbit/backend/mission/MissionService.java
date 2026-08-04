@@ -95,10 +95,13 @@ public class MissionService {
 
             // 게임이 끝났는지 검사한다.
             if(isGameOver(room, member)) {
+
                 //방 상태를 finished로 바꾸고 승자 기록
                 room.gameFinished_Not_Draw(member);
                 response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
+                // 게임 종료 알림 보내기
+                notificationService.roomFinishedNotification(room);
 
             } else {
                 room.turnFinished(opponent.getMember().getMemberId());
@@ -107,6 +110,9 @@ public class MissionService {
                 if(room.getCurrentTurnNumber() == 10L) {
                     room.gameFinished_Draw();
                     response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
+
+                    // 게임 종료 알림 보내기
+                    notificationService.roomFinishedNotification(room);
                 } else {
                     response = new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
 
@@ -142,6 +148,10 @@ public class MissionService {
         Mission mission = missionRepository.findByRoomAndPosition(room, position)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MISSION_NOT_FOUND));
 
+        // 같은 방의 상대방을 조회한다.
+        Player opponent = playerRepository.findByRoomAndMemberNot(room, member)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_NOT_FOUND));
+
         // 자기 턴에 사보타주 요청이 오면 에러 발생
         if(room.getCurrentTurnMemberId().equals(member.getMemberId())) {
             throw new BadRequestException(ErrorCode.MISSION_CANNOT_SABOTAGE_AT_YOUR_TURN);
@@ -166,6 +176,9 @@ public class MissionService {
 
         // 💡 리턴하기 직전, 사보타주 발생 알림 발송
         sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
+
+        // 리턴 전 상대방에게 알림 전송
+        notificationService.sabotageCompleteNotification(room, opponent.getMember());
 
         return PlayingRoomDTO.from(room);
     }
