@@ -4,7 +4,7 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.mission.dto.MissionCompleteResponse;
+import com.playbit.backend.sse.SseService; // 💡 SseService import 추가
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -29,6 +29,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class MissionServiceTest {
+
+    // 💡 SseService Mock 객체 추가 (NullPointerException 해결)
+    @Mock
+    private SseService sseService;
 
     @Mock
     private MemberRepository memberRepository;
@@ -183,6 +187,9 @@ public class MissionServiceTest {
         assertThat(room.getTurnStartedAt()).isNotNull();
         assertThat(room.getTurnDeadline()).isNotNull();
         assertThat(room.getCurrentTurnSabotaged()).isFalse();
+
+        // 💡 SSE 알림이 정상적으로 호출되었는지도 검증 추가
+        verify(sseService, times(1)).broadcastToRoom(eq(roomCode), any());
     }
 
     @Test
@@ -221,6 +228,9 @@ public class MissionServiceTest {
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isEqualTo(member);
         assertThat(room.getIsDraw()).isEqualTo(false);
+
+        // 💡 SSE 알림 검증
+        verify(sseService, times(1)).broadcastToRoom(eq(roomCode), any());
     }
 
     @Test
@@ -249,6 +259,9 @@ public class MissionServiceTest {
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isNull();
         assertThat(room.getIsDraw()).isEqualTo(true);
+
+        // 💡 SSE 알림 검증
+        verify(sseService, times(1)).broadcastToRoom(eq(roomCode), any());
     }
 
     @Test
@@ -441,5 +454,8 @@ public class MissionServiceTest {
 
         assertThat(room.getCurrentTurnSabotaged()).isTrue();
         assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusHours(18L));
+
+        // 💡 SSE 알림 검증
+        verify(sseService, times(1)).broadcastToRoom(eq(roomCode), any());
     }
 }
