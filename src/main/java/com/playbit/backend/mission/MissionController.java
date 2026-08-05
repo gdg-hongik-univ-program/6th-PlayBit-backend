@@ -3,6 +3,8 @@ package com.playbit.backend.mission;
 import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.room.dto.RoomDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,12 +12,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/rooms/{entryCode}/missions")
-
+@Tag(name = "Mission API", description = "미션 관련 API입니다.")
 public class MissionController {
 
     private final MissionService missionService;
 
     @PatchMapping("/{position}")
+    @Operation(summary = "미션 완료", description = "사용자가 미션 완료하였을 때 미션과 방의 상태를 업데이트합니다.")
     public ResponseEntity<ApiResponse<MissionCompleteResponse>> completeMission(
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @PathVariable String entryCode,
@@ -27,6 +30,7 @@ public class MissionController {
     }
 
     @PatchMapping("/{position}/sabotage")
+    @Operation(summary = "사보타주", description = "사용자가 사보타주를 하였을 때 상대방의 제한시간이 6시간 감소합니다.")
     public ResponseEntity<ApiResponse<RoomDTO>> sabotageMission(
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @PathVariable String entryCode,

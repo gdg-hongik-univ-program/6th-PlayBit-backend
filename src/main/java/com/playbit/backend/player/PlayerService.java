@@ -40,8 +40,8 @@ public class PlayerService {
         if(existingPlayer.isPresent()) {
             return new PlayerJoinResponse(
                     existingPlayer.get().getPlayerId(),
-                    existingPlayer.get().getMember().getMemberId(),
-                    existingPlayer.get().getRole().name()
+                    existingPlayer.get().getRole().name(),
+                    existingPlayer.get().getMember().getMemberId()
             );
         }
 
@@ -88,8 +88,8 @@ public class PlayerService {
         }
         return new PlayerJoinResponse(
                 player.getPlayerId(),
-                player.getMember().getMemberId(),
-                player.getRole().name()
+                player.getRole().name(),
+                player.getMember().getMemberId()
         );
     }
 }
