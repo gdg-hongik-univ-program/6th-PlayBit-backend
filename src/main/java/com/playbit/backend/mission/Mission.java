@@ -39,6 +39,11 @@ public class Mission {
     @Column(length = 500)
     private String imageUrl;
 
+    private Boolean sabotagedByOpponent = false;
+
+    @Column(length = 500)
+    private String sabotageImageUrl;
+
     public Mission(Room room, Long position, Content content){
         this.room = room;
         this.position = position;
@@ -49,5 +54,10 @@ public class Mission {
         this.completedBy = member;
         this.completedAt = LocalDateTime.now();
         this.imageUrl = imageUrl;
+    }
+
+    public void sabotageMission(String sabotageImageUrl){
+        this.sabotagedByOpponent = true;
+        this.sabotageImageUrl = sabotageImageUrl;
     }
 }

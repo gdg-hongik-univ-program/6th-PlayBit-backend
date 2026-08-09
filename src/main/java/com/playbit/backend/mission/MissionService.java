@@ -7,6 +7,7 @@ import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.mission.dto.MissionDTO;
+import com.playbit.backend.mission.dto.MissionSabotageResponse;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -125,7 +126,7 @@ public class MissionService {
     }
 
     @Transactional
-    public RoomDTO sabotageMission(String memberUuid, long position, String roomCode) {
+    public MissionSabotageResponse sabotageMission(String memberUuid, long position, String roomCode, MultipartFile image) {
 
         // uuid로 멤버를 조회한다
         Member member = memberRepository.findByMemberUuid(memberUuid)
@@ -158,12 +159,18 @@ public class MissionService {
             throw new BadRequestException(ErrorCode.ROOM_ALREADY_SABOTAGED_AT_THIS_TURN);
         }
 
+        // S3 sabotage/ 경로로 사보타주 사진 업로드
+        String sabotageImageUrl = s3UploadService.uploadImage(image, "sabotage");
+
+        // 미션 엔티티에 사보타주 완료 이미지 및 URL 저장
+        mission.sabotageMission(sabotageImageUrl);
+
         room.setCurrentTurnSabotaged(true);
         room.setTurnDeadline(room.getTurnDeadline().minusHours(6));
 
         // 💡 리턴하기 직전, 사보타주 발생 알림 발송
         sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
 
-        return PlayingRoomDTO.from(room);
+        return new MissionSabotageResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
     }
 }
