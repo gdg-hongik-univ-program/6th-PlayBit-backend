@@ -36,9 +36,18 @@ public class Mission {
 
     private LocalDateTime completedAt;
 
+    @Column(length = 500)
+    private String imageUrl;
+
     public Mission(Room room, Long position, Content content){
         this.room = room;
         this.position = position;
         this.content = content ;
+    }
+
+    public void completeMission(Member member, String imageUrl){
+        this.completedBy = member;
+        this.completedAt = LocalDateTime.now();
+        this.imageUrl = imageUrl;
     }
 }

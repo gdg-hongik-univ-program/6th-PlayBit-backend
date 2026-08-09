@@ -14,11 +14,13 @@ import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.dto.FinishedRoomDTO;
 import com.playbit.backend.room.dto.PlayingRoomDTO;
 import com.playbit.backend.room.dto.RoomDTO;
+import com.playbit.backend.s3.S3UploadService;
 import com.playbit.backend.sse.SseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -35,6 +37,7 @@ public class MissionService {
     private final RoomRepository roomRepository;
     private final PlayerRepository playerRepository;
     private final SseService sseService;
+    private final S3UploadService s3UploadService;
 
 
     public boolean isGameOver(Room room, Member member) {
@@ -65,7 +68,8 @@ public class MissionService {
     }
 
     @Transactional
-    public MissionCompleteResponse completeMission(String memberUuid, long position, String roomCode) {
+    public MissionCompleteResponse completeMission(String memberUuid, long position, String roomCode
+            , MultipartFile image) {
         // uuid로 멤버를 조회한다
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -85,9 +89,10 @@ public class MissionService {
         // 해당 사용자의 턴이 맞는지 검사한다.
         if(room.getCurrentTurnMemberId().equals(member.getMemberId())) {
 
-            // 해당 칸을 해당 멤버 아이디로 채우고, 시간을 기록한다.
-            mission.setCompletedBy(member);
-            mission.setCompletedAt(LocalDateTime.now());
+            // S3에 이미지 업로드
+            String imageUrl = s3UploadService.uploadImage(image, "missions");
+            // 해당 칸을 해당 멤버 아이디와 사진 URL로 채우고, 시간을 기록한다.
+            mission.completeMission(member, imageUrl);
 
             MissionCompleteResponse response; // 💡 응답을 미리 담아둘 변수 선언
 
