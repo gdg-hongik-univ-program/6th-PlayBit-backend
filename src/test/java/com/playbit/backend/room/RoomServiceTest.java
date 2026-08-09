@@ -55,7 +55,7 @@ public class RoomServiceTest {
             String memberUuid = "uuid-member-1";
 
             // 1. 테스트용 엔티티 생성
-            Member cuurentMember = new Member(1L,memberUuid);
+            Member cuurentMember = new Member(1L, memberUuid);
             Member oppentMember = new Member(2L, "uuid-member-2");
 
             // 정상 진행중인 방
@@ -63,11 +63,12 @@ public class RoomServiceTest {
                     1L, null, LocalDateTime.now(), LocalDateTime.now().plusHours(24),
                     null, null);
 
-            Player player1 = new Player(room,cuurentMember, PlayerRole.O);
-            Player player2 = new Player(room,oppentMember,PlayerRole.X);
+            Player player1 = new Player(room, cuurentMember, PlayerRole.O);
+            Player player2 = new Player(room, oppentMember, PlayerRole.X);
 
+            // 🌟 7번째 인자인 imageUrl 자리(null)를 추가하여 생성자 인자 개수를 맞춥니다.
             Mission mission = new Mission(
-                    1L, room, 1L, Content.STUDY_1, cuurentMember, LocalDateTime.now()
+                    1L, room, 1L, Content.STUDY_1, cuurentMember, LocalDateTime.now(), null
             );
 
             // 2. 가짜 객체 행동 정의
@@ -77,7 +78,7 @@ public class RoomServiceTest {
             given(missionRepository.findByRoom(room)).willReturn(List.of(mission));
 
             // when
-            EnterRoomResponse response = roomService.enterRoom(entryCode,memberUuid);
+            EnterRoomResponse response = roomService.enterRoom(entryCode, memberUuid);
 
             // then
             assertThat(response).isNotNull();
@@ -95,7 +96,7 @@ public class RoomServiceTest {
             assertThat(response.players()).hasSize(2);
             assertThat(response.players())
                     .extracting("memberId")
-                    .containsExactlyInAnyOrder(1L,2L);
+                    .containsExactlyInAnyOrder(1L, 2L);
 
             // Repository 호출 횟수 검증
             verify(roomRepository, times(1)).findByEntryCode(entryCode);
