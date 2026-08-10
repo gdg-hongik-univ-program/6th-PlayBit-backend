@@ -8,22 +8,20 @@ import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.mission.dto.MissionDTO;
 import com.playbit.backend.mission.dto.MissionSabotageResponse;
+import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.dto.FinishedRoomDTO;
 import com.playbit.backend.room.dto.PlayingRoomDTO;
-import com.playbit.backend.room.dto.RoomDTO;
 import com.playbit.backend.s3.S3UploadService;
 import com.playbit.backend.sse.SseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +37,7 @@ public class MissionService {
     private final PlayerRepository playerRepository;
     private final SseService sseService;
     private final S3UploadService s3UploadService;
+    private final NotificationService notificationService;
 
 
     public boolean isGameOver(Room room, Member member) {
@@ -87,6 +86,9 @@ public class MissionService {
         Player opponent = playerRepository.findByRoomAndMemberNot(room, member)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_NOT_FOUND));
 
+        List<Member> roomMembers = playerRepository.findByRoom(room).stream()
+                .map(player -> player.getMember()).toList();
+
         // 해당 사용자의 턴이 맞는지 검사한다.
         if(room.getCurrentTurnMemberId().equals(member.getMemberId())) {
 
@@ -103,6 +105,9 @@ public class MissionService {
                 room.gameFinished_Not_Draw(member);
                 response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
+                // 게임 종료 알림 보내기
+                notificationService.roomFinishedNotification(roomCode, roomMembers);
+
             } else {
                 room.turnFinished(opponent.getMember().getMemberId());
 
@@ -110,8 +115,14 @@ public class MissionService {
                 if(room.getCurrentTurnNumber() == 10L) {
                     room.gameFinished_Draw();
                     response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
+
+                    // 게임 종료 알림 보내기
+                    notificationService.roomFinishedNotification(roomCode, roomMembers);
                 } else {
                     response = new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
+
+                    // 게임 안 끝나고 턴만 넘어갈 때 알림 발송
+                    notificationService.missionCompleteNotification(roomCode, List.of(opponent.getMember()));
                 }
             }
 
@@ -140,6 +151,10 @@ public class MissionService {
         // roomCode와 position으로 mission을 조회한다.
         Mission mission = missionRepository.findByRoomAndPosition(room, position)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MISSION_NOT_FOUND));
+
+        // 같은 방의 상대방을 조회한다.
+        Player opponent = playerRepository.findByRoomAndMemberNot(room, member)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_NOT_FOUND));
 
         // 자기 턴에 사보타주 요청이 오면 에러 발생
         if(room.getCurrentTurnMemberId().equals(member.getMemberId())) {
@@ -171,6 +186,9 @@ public class MissionService {
 
         // 💡 리턴하기 직전, 사보타주 발생 알림 발송
         sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
+
+        // 리턴 전 상대방에게 알림 전송
+        notificationService.sabotageCompleteNotification(roomCode, List.of(opponent.getMember()));
 
         return new MissionSabotageResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
     }

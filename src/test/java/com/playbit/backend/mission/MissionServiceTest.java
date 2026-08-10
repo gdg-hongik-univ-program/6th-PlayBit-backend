@@ -5,13 +5,15 @@ import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionSabotageResponse;
+import com.playbit.backend.notification.NotificationService;
+import com.playbit.backend.player.PlayerRole;
+import com.playbit.backend.sse.SseService; // 💡 SseService import 추가
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.RoomStatus;
 import com.playbit.backend.s3.S3UploadService;
-import com.playbit.backend.sse.SseService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class MissionServiceTest {
 
+    // 💡 SseService Mock 객체 추가 (NullPointerException 해결)
     @Mock
     private SseService sseService;
 
@@ -45,6 +47,8 @@ public class MissionServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+    @Mock
+    private NotificationService notificationService;
     @Mock
     private RoomRepository roomRepository;
     @Mock
@@ -367,6 +371,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
@@ -396,6 +401,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
@@ -425,6 +431,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
@@ -455,6 +462,7 @@ public class MissionServiceTest {
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
 
         //when & then
         assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
@@ -469,20 +477,20 @@ public class MissionServiceTest {
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Member opponent = new Member(34L, UUID.randomUUID().toString());
+        Member opponentMember = new Member(34L, UUID.randomUUID().toString());
         Member member = new Member(7L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
 
-        // 🌟 생성자 11개 맞춤 (기존 코멘트는 null)
-        Mission mission = new Mission(35L, room, 4L, null, opponent, turnStartedAt, "https://s3.amazonaws.com/mission.jpg", false, null, null, null);
+        Mission mission = new Mission(35L, room, 4L, null, opponentMember, turnStartedAt, "https://s3.amazonaws.com/mission.jpg", false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
         String sabotageImageUrl = "https://s3.amazonaws.com/sabotage.jpg";
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player(room, opponentMember, PlayerRole.O)));
         when(s3UploadService.uploadImage(any(), eq("sabotage"))).thenReturn(sabotageImageUrl);
 
         //when (🌟 사보타주 코멘트 전송)

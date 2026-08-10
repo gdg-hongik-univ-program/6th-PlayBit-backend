@@ -5,6 +5,7 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
+import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,6 +26,7 @@ public class PlayerService {
     private final RoomRepository roomRepository;
     private final MemberRepository memberRepository;
     private final SseService sseService;
+    private final NotificationService notificationService;
 
     @Transactional
     public PlayerJoinResponse registerPlayer(String entryCode, String memberUuid){
@@ -83,8 +86,18 @@ public class PlayerService {
 
             room.startGame(firstTurnMemberId);
 
-            // 게임 시작 됨 알림을 방 전체에 전송
+            // 게임 시작 정보를 방 전체에 전송
             sseService.broadcastToRoom(entryCode, Map.of("message", "GAME_STARTED"));
+
+            // 해당 방의 모든 멤버 찾기
+            List<Member> players = playerRepository.findByRoom(room).stream()
+                    .map(Player::getMember)
+                    .toList();
+
+            // 게임 시작 알림을 플레이어들에게 전송
+            notificationService.roomStartedNotification(entryCode, players);
+
+
         }
         return new PlayerJoinResponse(
                 player.getPlayerId(),
