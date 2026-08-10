@@ -1,6 +1,7 @@
 package com.playbit.backend.room;
 
 import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.event.RoomUpdatedEvent;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
@@ -14,6 +15,7 @@ import com.playbit.backend.room.dto.RoomCreateResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
 import com.playbit.backend.sse.SseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +32,7 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final MemberRepository memberRepository;
     private final MissionRepository missionRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher eventPublisher;
 
     //방 입장하기
     @Transactional
@@ -102,7 +104,8 @@ public class RoomService {
 
         // 업데이트 변수가 true 라면 방 전체 유저에게 화면을 갱신하라고 SSE 알림 발송
             if (isRoomUpdated) {
-                sseService.broadcastToRoom(entryCode, Map.of("message", "TURN_TIMEOUT_UPDATED"));
+
+                eventPublisher.publishEvent(new RoomUpdatedEvent(entryCode));
             }
 
         // 7. 최종 완성된 DTO 반환

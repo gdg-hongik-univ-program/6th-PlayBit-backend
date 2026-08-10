@@ -1,6 +1,9 @@
 package com.playbit.backend.mission;
 
 import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.event.GameEndedEvent;
+import com.playbit.backend.common.event.MissionCompletedEvent;
+import com.playbit.backend.common.event.MissionSabotagedEvent;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
@@ -8,7 +11,6 @@ import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.mission.dto.MissionDTO;
 import com.playbit.backend.mission.dto.MissionSabotageResponse;
-import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -16,15 +18,14 @@ import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.dto.FinishedRoomDTO;
 import com.playbit.backend.room.dto.PlayingRoomDTO;
 import com.playbit.backend.s3.S3UploadService;
-import com.playbit.backend.sse.SseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -35,9 +36,8 @@ public class MissionService {
     private final MemberRepository memberRepository;
     private final RoomRepository roomRepository;
     private final PlayerRepository playerRepository;
-    private final SseService sseService;
     private final S3UploadService s3UploadService;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
 
     public boolean isGameOver(Room room, Member member) {
@@ -105,8 +105,8 @@ public class MissionService {
                 room.gameFinished_Not_Draw(member);
                 response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
-                // 게임 종료 알림 보내기
-                notificationService.roomFinishedNotification(roomCode, roomMembers);
+                // 게임 종료 이벤트 발행
+                applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMembers));
 
             } else {
                 room.turnFinished(opponent.getMember().getMemberId());
@@ -116,18 +116,16 @@ public class MissionService {
                     room.gameFinished_Draw();
                     response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
-                    // 게임 종료 알림 보내기
-                    notificationService.roomFinishedNotification(roomCode, roomMembers);
+                    // 게임 종료 이벤트 발행
+                    applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMembers));
                 } else {
                     response = new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
 
-                    // 게임 안 끝나고 턴만 넘어갈 때 알림 발송
-                    notificationService.missionCompleteNotification(roomCode, List.of(opponent.getMember()));
+                    // 미션 완료 이벤트 발행
+                    applicationEventPublisher.publishEvent(
+                            new MissionCompletedEvent(roomCode, List.of(opponent.getMember())));
                 }
             }
-
-            // 💡 리턴하기 직전, 방에 있는 사람들에게 미션 완료 알림 발송
-            sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_COMPLETED"));
 
             return response;
 
@@ -184,11 +182,8 @@ public class MissionService {
         room.setCurrentTurnSabotaged(true);
         room.setTurnDeadline(room.getTurnDeadline().minusHours(6));
 
-        // 💡 리턴하기 직전, 사보타주 발생 알림 발송
-        sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
-
-        // 리턴 전 상대방에게 알림 전송
-        notificationService.sabotageCompleteNotification(roomCode, List.of(opponent.getMember()));
+        //사보타주 완료 이벤트 발행
+        applicationEventPublisher.publishEvent(new MissionSabotagedEvent(roomCode, List.of(opponent.getMember())));
 
         return new MissionSabotageResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
     }

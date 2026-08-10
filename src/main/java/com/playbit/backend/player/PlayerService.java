@@ -1,22 +1,21 @@
 package com.playbit.backend.player;
 
 import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.event.GameStartedEvent;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.RoomStatus;
-import com.playbit.backend.sse.SseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -25,8 +24,7 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final RoomRepository roomRepository;
     private final MemberRepository memberRepository;
-    private final SseService sseService;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public PlayerJoinResponse registerPlayer(String entryCode, String memberUuid){
@@ -86,17 +84,14 @@ public class PlayerService {
 
             room.startGame(firstTurnMemberId);
 
-            // 게임 시작 정보를 방 전체에 전송
-            sseService.broadcastToRoom(entryCode, Map.of("message", "GAME_STARTED"));
-
             // 해당 방의 모든 멤버 찾기
             List<Member> players = playerRepository.findByRoom(room).stream()
                     .map(Player::getMember)
                     .toList();
 
-            // 게임 시작 알림을 플레이어들에게 전송
-            notificationService.roomStartedNotification(entryCode, players);
-
+            // 게임 시작 이벤트 발행
+            applicationEventPublisher.publishEvent(
+                    new GameStartedEvent(entryCode, players));
 
         }
         return new PlayerJoinResponse(
