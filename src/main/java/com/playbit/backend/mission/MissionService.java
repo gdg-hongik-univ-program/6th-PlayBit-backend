@@ -7,6 +7,7 @@ import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.mission.dto.MissionDTO;
+import com.playbit.backend.mission.dto.MissionSabotageResponse;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -14,11 +15,13 @@ import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.dto.FinishedRoomDTO;
 import com.playbit.backend.room.dto.PlayingRoomDTO;
 import com.playbit.backend.room.dto.RoomDTO;
+import com.playbit.backend.s3.S3UploadService;
 import com.playbit.backend.sse.SseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -35,6 +38,7 @@ public class MissionService {
     private final RoomRepository roomRepository;
     private final PlayerRepository playerRepository;
     private final SseService sseService;
+    private final S3UploadService s3UploadService;
 
 
     public boolean isGameOver(Room room, Member member) {
@@ -65,7 +69,8 @@ public class MissionService {
     }
 
     @Transactional
-    public MissionCompleteResponse completeMission(String memberUuid, long position, String roomCode) {
+    public MissionCompleteResponse completeMission(String memberUuid, long position, String roomCode
+            , MultipartFile image, String comment) {
         // uuid로 멤버를 조회한다
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -85,9 +90,10 @@ public class MissionService {
         // 해당 사용자의 턴이 맞는지 검사한다.
         if(room.getCurrentTurnMemberId().equals(member.getMemberId())) {
 
-            // 해당 칸을 해당 멤버 아이디로 채우고, 시간을 기록한다.
-            mission.setCompletedBy(member);
-            mission.setCompletedAt(LocalDateTime.now());
+            // S3에 이미지 업로드
+            String imageUrl = s3UploadService.uploadImage(image, "missions");
+            // 해당 칸을 해당 멤버 아이디와 사진 URL로 채우고 (코멘트는 선택),  시간을 기록한다.
+            mission.completeMission(member, imageUrl, comment);
 
             MissionCompleteResponse response; // 💡 응답을 미리 담아둘 변수 선언
 
@@ -120,7 +126,8 @@ public class MissionService {
     }
 
     @Transactional
-    public RoomDTO sabotageMission(String memberUuid, long position, String roomCode) {
+    public MissionSabotageResponse sabotageMission(String memberUuid, long position, String roomCode,
+                                                   MultipartFile image, String comment) {
 
         // uuid로 멤버를 조회한다
         Member member = memberRepository.findByMemberUuid(memberUuid)
@@ -153,12 +160,18 @@ public class MissionService {
             throw new BadRequestException(ErrorCode.ROOM_ALREADY_SABOTAGED_AT_THIS_TURN);
         }
 
+        // S3 sabotage/ 경로로 사보타주 사진 업로드
+        String sabotageImageUrl = s3UploadService.uploadImage(image, "sabotage");
+
+        // 미션 엔티티에 사보타주 완료 이미지 및 URL 저장 (코멘트는 선택)
+        mission.sabotageMission(sabotageImageUrl, comment);
+
         room.setCurrentTurnSabotaged(true);
         room.setTurnDeadline(room.getTurnDeadline().minusHours(6));
 
         // 💡 리턴하기 직전, 사보타주 발생 알림 발송
         sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
 
-        return PlayingRoomDTO.from(room);
+        return new MissionSabotageResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
     }
 }
