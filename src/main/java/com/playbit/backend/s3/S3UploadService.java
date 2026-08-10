@@ -1,5 +1,8 @@
 package com.playbit.backend.s3;
 
+import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +35,7 @@ public class S3UploadService {
      */
     public String uploadImage(MultipartFile image, String directory) {
         if (image == null || image.isEmpty()) {
-            throw new IllegalArgumentException("업로드할 이미지 파일이 없습니다.");
+            throw new NotFoundException(ErrorCode.IMAGE_NOT_FOUND);
         }
 
         try {
@@ -56,7 +59,7 @@ public class S3UploadService {
 
         } catch (IOException e) {
             log.error("S3 파일 업로드 중 오류 발생", e);
-            throw new RuntimeException("이미지 업로드에 실패했습니다.");
+            throw new BadRequestException(ErrorCode.IMAGE_UPLOAD_FAIL);
         }
     }
 }
