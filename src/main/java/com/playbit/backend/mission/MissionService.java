@@ -84,6 +84,9 @@ public class MissionService {
         Player opponent = playerRepository.findByRoomAndMemberNot(room, member)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_NOT_FOUND));
 
+        List<Member> roomMembers = playerRepository.findByRoom(room).stream()
+                .map(player -> player.getMember()).toList();
+
         // 해당 사용자의 턴이 맞는지 검사한다.
         if(room.getCurrentTurnMemberId().equals(member.getMemberId())) {
 
@@ -101,7 +104,7 @@ public class MissionService {
                 response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
                 // 게임 종료 알림 보내기
-                notificationService.roomFinishedNotification(room);
+                notificationService.roomFinishedNotification(roomCode, roomMembers);
 
             } else {
                 room.turnFinished(opponent.getMember().getMemberId());
@@ -112,14 +115,12 @@ public class MissionService {
                     response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
 
                     // 게임 종료 알림 보내기
-                    notificationService.roomFinishedNotification(room);
+                    notificationService.roomFinishedNotification(roomCode, roomMembers);
                 } else {
                     response = new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
 
                     // 게임 안 끝나고 턴만 넘어갈 때 알림 발송
-                    Member opponentMember = memberRepository.findByMemberId(opponent.getMember().getMemberId())
-                                    .orElseThrow(()-> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-                    notificationService.missionCompleteNotification(room, opponentMember);
+                    notificationService.missionCompleteNotification(roomCode, List.of(opponent.getMember()));
                 }
             }
 
@@ -178,7 +179,7 @@ public class MissionService {
         sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
 
         // 리턴 전 상대방에게 알림 전송
-        notificationService.sabotageCompleteNotification(room, opponent.getMember());
+        notificationService.sabotageCompleteNotification(roomCode, List.of(opponent.getMember()));
 
         return PlayingRoomDTO.from(room);
     }

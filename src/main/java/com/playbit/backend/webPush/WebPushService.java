@@ -19,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Security;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -65,29 +66,40 @@ public class WebPushService {
         return builder.build().toUri();
     }
 
-    public void sendPush(Subscription subscription, String payloadJSON) {
-        try {
+    public void sendPushToMembers(List<Member> members, String payloadJSON) {
 
-            Notification notification = new Notification(
-                    subscription.endpoint,
-                    subscription.keys.p256dh,
-                    subscription.keys.auth,
-                    payloadJSON
-            );
+        // 멤버 리스트에서 구독 정보 가져오기
+        List<WebPushSubscription> byMemberId = members.stream()
+                .flatMap(member -> webPushRepository.findByMemberMemberId(member.getMemberId()).stream())
+                .toList();
 
-            HttpResponse response = pushService.send(notification);
-            int statusCode = response.getStatusLine().getStatusCode();
+        for (WebPushSubscription webPushSubscription : byMemberId) {
+            try {
 
-            if (statusCode == 201) {
-                log.info("푸시 알림 전송 성공!");
-            } else if (statusCode == 404 || statusCode == 410) {
-                // 3. 에러 처리: 사용자가 알림 권한을 철회했거나 구독이 만료된 경우
-                log.warn("유효하지 않은 구독입니다. DB에서 해당 구독 정보를 삭제해야 합니다.");
-                // TODO: DB에서 해당 subscription 삭제 로직 호출
-            } else {
-                log.warn("알림 전송 실패. 상태 코드: " + statusCode);
-            } } catch (Exception e) {
-            log.warn("푸시 발송 중 예외 발생: " + e.getMessage());
+                Notification notification = new Notification(
+                        webPushSubscription.getEndpoint(),
+                        webPushSubscription.getP256dh(),
+                        webPushSubscription.getAuth(),
+                        payloadJSON
+                );
+
+                HttpResponse response = pushService.send(notification);
+                int statusCode = response.getStatusLine().getStatusCode();
+
+                if (statusCode == 201) {
+                    log.info("푸시 알림 전송 성공!");
+                } else if (statusCode == 404 || statusCode == 410) {
+                    // 3. 에러 처리: 사용자가 알림 권한을 철회했거나 구독이 만료된 경우
+                    log.warn("유효하지 않은 구독입니다. DB에서 해당 구독 정보를 삭제해야 합니다. memberId: {}, endpoint: {}",
+                            webPushSubscription.getMember().getMemberId(),
+                            webPushSubscription.getEndpoint());
+                    // TODO: DB에서 해당 subscription 삭제 로직 호출
+                } else {
+                    log.warn("알림 전송 실패. 상태 코드: " + statusCode);
+                }
+            } catch (Exception e) {
+                log.warn("푸시 발송 중 예외 발생: " + e.getMessage());
+            }
         }
     }
 }

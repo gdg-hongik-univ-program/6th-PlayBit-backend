@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -88,8 +89,15 @@ public class PlayerService {
             // 게임 시작 정보를 방 전체에 전송
             sseService.broadcastToRoom(entryCode, Map.of("message", "GAME_STARTED"));
 
+            // 해당 방의 모든 멤버 찾기
+            List<Member> players = playerRepository.findByRoom(room).stream()
+                    .map(Player::getMember)
+                    .toList();
+
             // 게임 시작 알림을 플레이어들에게 전송
-            notificationService.roomStartedNotification(room);
+            notificationService.roomStartedNotification(entryCode, players);
+
+
         }
         return new PlayerJoinResponse(
                 player.getPlayerId(),

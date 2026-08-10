@@ -23,6 +23,7 @@ public class Notification {
     private Member member;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private NotificationType type;
 
     @Column
