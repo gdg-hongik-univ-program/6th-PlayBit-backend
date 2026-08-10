@@ -29,7 +29,7 @@ public class GameEventListener {
     public void handleGameEndedEvent(GameEndedEvent event) {
 
         // 방에 있는 사람들에게 게임 종료 알림 발송
-        sseService.broadcastToRoom(event.roomCode(), Map.of("message", "Game_ENDED"));
+        sseService.broadcastToRoom(event.roomCode(), Map.of("message", "GAME_ENDED"));
 
         // 게임 종료 알림 보내기
         notificationService.roomFinishedNotification(event.roomCode(), event.roomMembers());
