@@ -14,7 +14,9 @@ public record MissionDTO (
         String imageUrl,
         @Schema(description = "사보타주 여부", example = "true") Boolean sabotagedByOpponent,
         @Schema(description = "사보타주 인증 사진 URL",
-                example = "https://{버킷이름}.s3.ap-northeast-2.amazonaws.com/sabotage/987f6543_image.jpg") String sabotageImageUrl
+                example = "https://{버킷이름}.s3.ap-northeast-2.amazonaws.com/sabotage/987f6543_image.jpg") String sabotageImageUrl,
+        @Schema(description = "미션 완료 코멘트", example = "백엔드 개념학습 완료") String comment,
+        @Schema(description = "사보타주 코멘트", example = "백엔드 개념학습 완료") String sabotageComment
 ) {
     public static MissionDTO from(Mission mission){
         return new MissionDTO(
@@ -23,7 +25,9 @@ public record MissionDTO (
                 mission.getCompletedAt(),
                 mission.getImageUrl(),
                 mission.getSabotagedByOpponent(),
-                mission.getSabotageImageUrl()
+                mission.getSabotageImageUrl(),
+                mission.getComment(),
+                mission.getSabotageComment()
         );
     }
 }

@@ -70,7 +70,7 @@ public class MissionService {
 
     @Transactional
     public MissionCompleteResponse completeMission(String memberUuid, long position, String roomCode
-            , MultipartFile image) {
+            , MultipartFile image, String comment) {
         // uuid로 멤버를 조회한다
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -92,8 +92,8 @@ public class MissionService {
 
             // S3에 이미지 업로드
             String imageUrl = s3UploadService.uploadImage(image, "missions");
-            // 해당 칸을 해당 멤버 아이디와 사진 URL로 채우고, 시간을 기록한다.
-            mission.completeMission(member, imageUrl);
+            // 해당 칸을 해당 멤버 아이디와 사진 URL로 채우고 (코멘트는 선택),  시간을 기록한다.
+            mission.completeMission(member, imageUrl, comment);
 
             MissionCompleteResponse response; // 💡 응답을 미리 담아둘 변수 선언
 
@@ -126,7 +126,8 @@ public class MissionService {
     }
 
     @Transactional
-    public MissionSabotageResponse sabotageMission(String memberUuid, long position, String roomCode, MultipartFile image) {
+    public MissionSabotageResponse sabotageMission(String memberUuid, long position, String roomCode,
+                                                   MultipartFile image, String comment) {
 
         // uuid로 멤버를 조회한다
         Member member = memberRepository.findByMemberUuid(memberUuid)
@@ -162,8 +163,8 @@ public class MissionService {
         // S3 sabotage/ 경로로 사보타주 사진 업로드
         String sabotageImageUrl = s3UploadService.uploadImage(image, "sabotage");
 
-        // 미션 엔티티에 사보타주 완료 이미지 및 URL 저장
-        mission.sabotageMission(sabotageImageUrl);
+        // 미션 엔티티에 사보타주 완료 이미지 및 URL 저장 (코멘트는 선택)
+        mission.sabotageMission(sabotageImageUrl, comment);
 
         room.setCurrentTurnSabotaged(true);
         room.setTurnDeadline(room.getTurnDeadline().minusHours(6));

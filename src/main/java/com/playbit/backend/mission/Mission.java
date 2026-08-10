@@ -44,20 +44,28 @@ public class Mission {
     @Column(length = 500)
     private String sabotageImageUrl;
 
+    @Column(length = 255)
+    private String comment;
+
+    @Column(length = 255)
+    private String sabotageComment;
+
     public Mission(Room room, Long position, Content content){
         this.room = room;
         this.position = position;
         this.content = content ;
     }
 
-    public void completeMission(Member member, String imageUrl){
+    public void completeMission(Member member, String imageUrl, String comment){
         this.completedBy = member;
         this.completedAt = LocalDateTime.now();
         this.imageUrl = imageUrl;
+        this.comment = comment;
     }
 
-    public void sabotageMission(String sabotageImageUrl){
+    public void sabotageMission(String sabotageImageUrl,String sabotageComment){
         this.sabotagedByOpponent = true;
         this.sabotageImageUrl = sabotageImageUrl;
+        this.sabotageComment = sabotageComment;
     }
 }
