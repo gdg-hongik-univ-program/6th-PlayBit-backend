@@ -59,10 +59,11 @@ public class MissionControllerTest {
         Long position = 3L;
         Room room = new Room(3L, RoomStatus.PLAYING, entryCode, null, Category.STUDY, 3L, 4L, null, null, false, null);
 
-        // 🌟 9개의 필드 인자에 맞게 뒤에 false, null 추가
-        Mission mission = new Mission(8L, room, 3L, null, member, LocalDateTime.now(), "https://test-image-url.jpg", false, null);
+        // 🌟 11개의 필드 인자에 맞게 뒤에 null 2개 추가 (comment, sabotageComment)
+        Mission mission = new Mission(8L, room, 3L, null, member, LocalDateTime.now(), "https://test-image-url.jpg", false, null, "완료 코멘트", null);
 
-        given(missionService.completeMission(anyString(), anyLong(), anyString(), any()))
+        // 🌟 서비스 메서드 파라미터가 5개로 늘었으므로 any() 하나 추가
+        given(missionService.completeMission(anyString(), anyLong(), anyString(), any(), any()))
                 .willReturn(new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission)));
 
         given(memberAuthInterceptor.preHandle(any(), any(), any()))
@@ -80,6 +81,7 @@ public class MissionControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.mission.position").value(3L))
                 .andExpect(jsonPath("$.data.mission.completedByMemberId").value(member.getMemberId()))
+                .andExpect(jsonPath("$.data.mission.comment").value("완료 코멘트")) // 🌟
                 .andExpect(jsonPath("$.data.room.currentTurnMemberId").value(3L))
                 .andExpect(jsonPath("$.data.room.currentTurnNumber").value(4L))
                 .andExpect(jsonPath("$.data.room.currentTurnSabotaged").value(false))
@@ -96,10 +98,11 @@ public class MissionControllerTest {
         Long position = 3L;
         Room room = new Room(90L, RoomStatus.FINISHED, entryCode, member, Category.STUDY, 5L, 4L, null, null, false, null);
 
-        // 🌟 9개의 필드 인자에 맞게 뒤에 false, null 추가
-        Mission mission3 = new Mission(813L, room, 3L, null, member, LocalDateTime.now(), "https://test-image-url.jpg", false, null);
+        // 🌟 11개의 필드 인자에 맞게 뒤에 null 2개 추가
+        Mission mission3 = new Mission(813L, room, 3L, null, member, LocalDateTime.now(), "https://test-image-url.jpg", false, null, null, null);
 
-        given(missionService.completeMission(anyString(), anyLong(), anyString(), any()))
+        // 🌟 any() 하나 추가
+        given(missionService.completeMission(anyString(), anyLong(), anyString(), any(), any()))
                 .willReturn(new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission3)));
 
         given(memberAuthInterceptor.preHandle(any(), any(), any()))
@@ -132,10 +135,11 @@ public class MissionControllerTest {
         Long position = 3L;
         Room room = new Room(3L, RoomStatus.FINISHED, entryCode, null, Category.STUDY, 3L, 10L, null, null, false, true);
 
-        // 🌟 9개의 필드 인자에 맞게 뒤에 false, null 추가
-        Mission mission = new Mission(8L, room, 3L, null, member, LocalDateTime.now(), "https://test-image-url.jpg", false, null);
+        // 🌟 11개의 필드 인자에 맞게 뒤에 null 2개 추가
+        Mission mission = new Mission(8L, room, 3L, null, member, LocalDateTime.now(), "https://test-image-url.jpg", false, null, null, null);
 
-        given(missionService.completeMission(anyString(), anyLong(), anyString(), any()))
+        // 🌟 any() 하나 추가
+        given(missionService.completeMission(anyString(), anyLong(), anyString(), any(), any()))
                 .willReturn(new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission)));
 
         given(memberAuthInterceptor.preHandle(any(), any(), any()))
@@ -179,8 +183,10 @@ public class MissionControllerTest {
         mission.setImageUrl("https://test-mission-image.jpg");
         mission.setSabotagedByOpponent(true);
         mission.setSabotageImageUrl("https://test-sabotage-image.jpg");
+        mission.setSabotageComment("사보타주 코멘트"); // 🌟
 
-        given(missionService.sabotageMission(anyString(), anyLong(), anyString(), any()))
+        // 🌟 파라미터가 5개로 늘었으므로 any() 하나 추가
+        given(missionService.sabotageMission(anyString(), anyLong(), anyString(), any(), any()))
                 .willReturn(new MissionSabotageResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission)));
 
         given(memberAuthInterceptor.preHandle(any(), any(), any()))
@@ -213,7 +219,8 @@ public class MissionControllerTest {
                 .andExpect(jsonPath("$.data.mission.position").value(3L))
                 .andExpect(jsonPath("$.data.mission.completedByMemberId").value(opponent.getMemberId()))
                 .andExpect(jsonPath("$.data.mission.sabotagedByOpponent").value(true))
-                .andExpect(jsonPath("$.data.mission.sabotageImageUrl").value("https://test-sabotage-image.jpg"));
+                .andExpect(jsonPath("$.data.mission.sabotageImageUrl").value("https://test-sabotage-image.jpg"))
+                .andExpect(jsonPath("$.data.mission.sabotageComment").value("사보타주 코멘트")); // 🌟
     }
 
     private static final DateTimeFormatter MICROSECONDS_FMT =

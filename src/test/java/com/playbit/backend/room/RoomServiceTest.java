@@ -66,9 +66,9 @@ public class RoomServiceTest {
             Player player1 = new Player(room, cuurentMember, PlayerRole.O);
             Player player2 = new Player(room, oppentMember, PlayerRole.X);
 
-            // 9개의 생성자 인자 규격에 맞춰 뒤에 false, null을 추가합니다.
+            // 🌟 11개의 생성자 인자 규격에 맞춰 뒤에 null 2개를 추가합니다. (comment, sabotageComment)
             Mission mission = new Mission(
-                    1L, room, 1L, Content.STUDY_1, cuurentMember, LocalDateTime.now(), null, false, null
+                    1L, room, 1L, Content.STUDY_1, cuurentMember, LocalDateTime.now(), null, false, null, null, null
             );
 
             // 2. 가짜 객체 행동 정의

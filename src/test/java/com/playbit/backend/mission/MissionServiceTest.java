@@ -67,8 +67,8 @@ public class MissionServiceTest {
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.empty());
 
-        //when & then
-        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image))
+        //when & then (🌟 코멘트 파라미터 추가)
+        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
@@ -89,7 +89,7 @@ public class MissionServiceTest {
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.empty());
 
         //when & then
-        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image))
+        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("방을 찾을 수 없습니다.");
 
@@ -112,7 +112,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.empty());
 
         //when & then
-        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image))
+        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("미션을 찾을 수 없습니다.");
 
@@ -138,7 +138,7 @@ public class MissionServiceTest {
         when(playerRepository.findByRoomAndMemberNot(any(), any())).thenReturn(Optional.empty());
 
         //when & then
-        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image))
+        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("플레이어를 찾을 수 없습니다.");
 
@@ -165,7 +165,7 @@ public class MissionServiceTest {
         when(playerRepository.findByRoomAndMemberNot(any(), any())).thenReturn(Optional.of(new Player()));
 
         //when & then
-        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image))
+        assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("해당 사용자의 차례가 아닙니다.");
     }
@@ -194,7 +194,7 @@ public class MissionServiceTest {
         when(s3UploadService.uploadImage(any(), anyString())).thenReturn(imageUrl);
 
         //when & then
-        missionService.completeMission(memberUuid, position, roomCode, image);
+        missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트");
 
         assertThat(room.getCurrentTurnMemberId()).isEqualTo(7L);
         assertThat(room.getCurrentTurnNumber()).isEqualTo(3L);
@@ -202,6 +202,7 @@ public class MissionServiceTest {
         assertThat(room.getTurnDeadline()).isNotNull();
         assertThat(room.getCurrentTurnSabotaged()).isFalse();
         assertThat(mission.getImageUrl()).isEqualTo(imageUrl);
+        assertThat(mission.getComment()).isEqualTo("완료 코멘트"); // 🌟 저장 검증 추가
 
         verify(sseService, times(1)).broadcastToRoom(eq(roomCode), any());
     }
@@ -239,7 +240,7 @@ public class MissionServiceTest {
         when(s3UploadService.uploadImage(any(), anyString())).thenReturn(imageUrl);
 
         //when & then
-        missionService.completeMission(memberUuid, position, roomCode, image);
+        missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트");
 
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isEqualTo(member);
@@ -273,7 +274,7 @@ public class MissionServiceTest {
         when(s3UploadService.uploadImage(any(), anyString())).thenReturn(imageUrl);
 
         //when & then
-        missionService.completeMission(memberUuid, position, roomCode, image);
+        missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트");
 
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isNull();
@@ -295,8 +296,8 @@ public class MissionServiceTest {
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.empty());
 
-        //when & then
-        assertThatThrownBy(() -> missionService.sabotageMission(memberUuid, position, roomCode, image))
+        //when & then (🌟 코멘트 파라미터 추가)
+        assertThatThrownBy(() -> missionService.sabotageMission(memberUuid, position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
 
@@ -318,7 +319,7 @@ public class MissionServiceTest {
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.empty());
 
         //when & then
-        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image))
+        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("방을 찾을 수 없습니다.");
 
@@ -342,7 +343,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.empty());
 
         //when & then
-        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image))
+        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("미션을 찾을 수 없습니다.");
 
@@ -368,7 +369,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
 
         //when & then
-        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image))
+        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("자신의 차례에는 사보타주가 불가합니다.");
 
@@ -387,7 +388,9 @@ public class MissionServiceTest {
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
-        Mission mission = new Mission(35L, room, 4L, null, null, null, null, false, null);
+
+        // 🌟 생성자 11개 맞춤 (뒤에 null 2개 추가)
+        Mission mission = new Mission(35L, room, 4L, null, null, null, null, false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
@@ -395,7 +398,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
 
         //when & then
-        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image))
+        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("완료되지 않은 미션에는 사보타주가 불가합니다.");
 
@@ -414,7 +417,9 @@ public class MissionServiceTest {
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
-        Mission mission = new Mission(35L, room, 4L, null, member, null, null, false, null);
+
+        // 🌟 생성자 11개 맞춤
+        Mission mission = new Mission(35L, room, 4L, null, member, null, null, false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
@@ -422,7 +427,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
 
         //when & then
-        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image))
+        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("자신이 완료한 미션은 사보타주가 불가합니다.");
 
@@ -442,7 +447,9 @@ public class MissionServiceTest {
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusHours(16L), true, null);
-        Mission mission = new Mission(35L, room, 4L, null, opponent, null, null, false, null);
+
+        // 🌟 생성자 11개 맞춤
+        Mission mission = new Mission(35L, room, 4L, null, opponent, null, null, false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
@@ -450,7 +457,7 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
 
         //when & then
-        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image))
+        assertThatThrownBy(() -> missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("이번 턴에 이미 한 번의 사보타주 기회를 사용하였습니다.");
     }
@@ -467,7 +474,9 @@ public class MissionServiceTest {
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
-        Mission mission = new Mission(35L, room, 4L, null, opponent, turnStartedAt, "https://s3.amazonaws.com/mission.jpg", false, null);
+
+        // 🌟 생성자 11개 맞춤 (기존 코멘트는 null)
+        Mission mission = new Mission(35L, room, 4L, null, opponent, turnStartedAt, "https://s3.amazonaws.com/mission.jpg", false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
         String sabotageImageUrl = "https://s3.amazonaws.com/sabotage.jpg";
 
@@ -476,13 +485,14 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
         when(s3UploadService.uploadImage(any(), eq("sabotage"))).thenReturn(sabotageImageUrl);
 
-        //when
-        MissionSabotageResponse response = missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image);
+        //when (🌟 사보타주 코멘트 전송)
+        MissionSabotageResponse response = missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "허위 인증 사보타주!");
 
         //then
         assertThat(response.room()).isNotNull();
         assertThat(response.mission().sabotagedByOpponent()).isTrue();
         assertThat(response.mission().sabotageImageUrl()).isEqualTo(sabotageImageUrl);
+        assertThat(mission.getSabotageComment()).isEqualTo("허위 인증 사보타주!"); // 🌟 코멘트 저장 검증 추가
 
         assertThat(room.getCurrentTurnSabotaged()).isTrue();
         assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusHours(18L));
