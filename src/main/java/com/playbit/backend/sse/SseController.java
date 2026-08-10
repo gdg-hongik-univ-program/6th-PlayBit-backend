@@ -1,5 +1,7 @@
 package com.playbit.backend.sse;
 
+import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +29,7 @@ public class SseController {
     ) {
         // 인터셉터를 통과했으므로 안전하게 memberId를 조회
         Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 구독 및 Emitter 반환
         return sseService.subscribe(entryCode, member.getMemberId());

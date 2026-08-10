@@ -30,7 +30,11 @@ public enum ErrorCode {
     PLAYER_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "플레이어를 찾을 수 없습니다."),
     PLAYER_OPPONENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P002", "상대편 플레이어를 찾을 수 없습니다."),
     PLAYER_ALREADY_REGISTERED(HttpStatus.BAD_REQUEST, "P003", "이미 방에 참가한 사용자입니다."),
-    PLAYER_ROOM_IS_ALREADY_FULL(HttpStatus.BAD_REQUEST, "P004", "해당 방에 이미 2명의 플레이어가 모두 입장하였습니다.");
+    PLAYER_ROOM_IS_ALREADY_FULL(HttpStatus.BAD_REQUEST, "P004", "해당 방에 이미 2명의 플레이어가 모두 입장하였습니다."),
+
+    //S3
+    IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "I001", "이미지 파일을 찾을 수 없습니다."),
+    IMAGE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "I002", "이미지 업로드에 실패했습니다.");
 
     private final HttpStatus status;
     private final String code;
