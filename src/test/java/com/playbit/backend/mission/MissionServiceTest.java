@@ -5,6 +5,7 @@ import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.notification.NotificationService;
+import com.playbit.backend.player.PlayerRole;
 import com.playbit.backend.sse.SseService; // 💡 SseService import 추가
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
@@ -181,7 +182,6 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
         when(playerRepository.findByRoomAndMemberNot(any(), any())).thenReturn(Optional.of(player));
         when(missionRepository.findByRoomAndCompletedBy(room, member)).thenReturn(Collections.EMPTY_LIST);
-        when(memberRepository.findByMemberId(opponent.getMemberId())).thenReturn(Optional.of(opponent));
 
         //when & then
         missionService.completeMission(memberUuid, position, roomCode);
@@ -446,17 +446,17 @@ public class MissionServiceTest {
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Member opponent = new Member(34L, UUID.randomUUID().toString());
+        Member opponentMember = new Member(34L, UUID.randomUUID().toString());
         Member member = new Member(7L, UUID.randomUUID().toString());
         LocalDateTime turnStartedAt = LocalDateTime.now();
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
-        Mission mission = new Mission(35L, room, 4L, null, opponent, turnStartedAt);
+        Mission mission = new Mission(35L, room, 4L, null, opponentMember, turnStartedAt);
 
         when(memberRepository.findByMemberUuid(member.getMemberUuid())).thenReturn(Optional.of(member));
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
-        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player()));
+        when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player(room, opponentMember, PlayerRole.O)));
 
         //when & then
         missionService.sabotageMission(member.getMemberUuid(), position, roomCode);
