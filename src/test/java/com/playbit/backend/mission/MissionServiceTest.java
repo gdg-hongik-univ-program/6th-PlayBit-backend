@@ -7,20 +7,25 @@ import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionSabotageResponse;
 import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.PlayerRole;
-import com.playbit.backend.sse.SseService; // 💡 SseService import 추가
+import com.playbit.backend.sse.SseService;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.RoomStatus;
 import com.playbit.backend.s3.S3UploadService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +43,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class MissionServiceTest {
 
-    // 💡 SseService Mock 객체 추가 (NullPointerException 해결)
     @Mock
     private SseService sseService;
 
@@ -59,10 +63,33 @@ public class MissionServiceTest {
     @InjectMocks
     private MissionService missionService;
 
+    @BeforeEach
+    void setUp() {
+        // 단위 테스트 환경에서 트랜잭션 동기화 활성화
+        TransactionSynchronizationManager.initSynchronization();
+    }
+
+    @AfterEach
+    void tearDown() {
+        // 테스트 종료 후 트랜잭션 동기화 정리
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    /**
+     * registerSynchronization에 등록된 afterCommit() 콜백들을 직접 실행해주는 헬퍼 메서드
+     */
+    private void executeAfterCommit() {
+        List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.getSynchronizations();
+        for (TransactionSynchronization synchronization : synchronizations) {
+            synchronization.afterCommit();
+        }
+    }
+
     @Test
     @DisplayName("존재하지 않는 유저가 미션 완료를 누르면 NotFoundException 발생")
     void completeMission_userNotFound() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -71,7 +98,7 @@ public class MissionServiceTest {
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.empty());
 
-        //when & then (🌟 코멘트 파라미터 추가)
+        //when & then
         assertThatThrownBy(() -> missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
@@ -104,7 +131,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("존재하지 않는 미션으로 미션 완료 요청이 들어오면 NotFoundException이 발생")
     void completeMission_missionNotFound() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -126,7 +152,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("미션 완료 요청이 들어왔는데 상대방이 없으면 NotFoundException이 발생")
     void completeMission_playerNotFound() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -153,7 +178,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("미션 완료 요청이 들어왔는데 해당 사용자의 차례가 아니면 BadRequestException이 발생")
     void completeMission_turnNotCorrect() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -177,7 +201,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("올바른 미션 완료 요청이 들어오고 게임이 끝나지 않음")
     void completeMission_gameNotOver() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -194,19 +217,21 @@ public class MissionServiceTest {
         when(roomRepository.findByEntryCode(roomCode)).thenReturn(Optional.of(room));
         when(missionRepository.findByRoomAndPosition(any(), anyLong())).thenReturn(Optional.of(mission));
         when(playerRepository.findByRoomAndMemberNot(any(), any())).thenReturn(Optional.of(player));
-        when(missionRepository.findByRoomAndCompletedBy(room, member)).thenReturn(Collections.EMPTY_LIST);
+        when(missionRepository.findByRoomAndCompletedBy(room, member)).thenReturn(Collections.emptyList());
         when(s3UploadService.uploadImage(any(), anyString())).thenReturn(imageUrl);
 
-        //when & then
+        //when
         missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트");
+        executeAfterCommit(); // 등록된 afterCommit() 실행 (SSE 전송 등)
 
+        //then
         assertThat(room.getCurrentTurnMemberId()).isEqualTo(7L);
         assertThat(room.getCurrentTurnNumber()).isEqualTo(3L);
         assertThat(room.getTurnStartedAt()).isNotNull();
         assertThat(room.getTurnDeadline()).isNotNull();
         assertThat(room.getCurrentTurnSabotaged()).isFalse();
         assertThat(mission.getImageUrl()).isEqualTo(imageUrl);
-        assertThat(mission.getComment()).isEqualTo("완료 코멘트"); // 🌟 저장 검증 추가
+        assertThat(mission.getComment()).isEqualTo("완료 코멘트");
 
         verify(sseService, times(1)).broadcastToRoom(eq(roomCode), any());
     }
@@ -214,7 +239,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("올바른 미션 완료 요청이 들어오고 승패가 결정되어 게임이 끝남")
     void completeMission_gameOver_Not_Draw() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -243,9 +267,11 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndCompletedBy(any(), any())).thenReturn(List.of(mission2, mission0, mission1));
         when(s3UploadService.uploadImage(any(), anyString())).thenReturn(imageUrl);
 
-        //when & then
+        //when
         missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트");
+        executeAfterCommit();
 
+        //then
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isEqualTo(member);
         assertThat(room.getIsDraw()).isEqualTo(false);
@@ -257,7 +283,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("올바른 미션 완료 요청이 들어오고 게임이 무승부로 끝남")
     void completeMission_gameOver_Draw() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -277,9 +302,11 @@ public class MissionServiceTest {
         when(missionRepository.findByRoomAndCompletedBy(any(), any())).thenReturn(List.of());
         when(s3UploadService.uploadImage(any(), anyString())).thenReturn(imageUrl);
 
-        //when & then
+        //when
         missionService.completeMission(memberUuid, position, roomCode, image, "완료 코멘트");
+        executeAfterCommit();
 
+        //then
         assertThat(room.getStatus()).isEqualTo(RoomStatus.FINISHED);
         assertThat(room.getWinner()).isNull();
         assertThat(room.getIsDraw()).isEqualTo(true);
@@ -291,7 +318,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 유저가 보낸 요청이면 NotFoundException 발생")
     void sabotageMission_memberNotFound() {
-
         //given
         String memberUuid = UUID.randomUUID().toString();
         long position = 0L;
@@ -300,7 +326,7 @@ public class MissionServiceTest {
 
         when(memberRepository.findByMemberUuid(memberUuid)).thenReturn(Optional.empty());
 
-        //when & then (🌟 코멘트 파라미터 추가)
+        //when & then
         assertThatThrownBy(() -> missionService.sabotageMission(memberUuid, position, roomCode, image, "사보타주 코멘트"))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("사용자를 찾을 수 없습니다.");
@@ -312,7 +338,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 방에 보낸 요청이면 NotFoundException 발생")
     void sabotageMission_roomNotFound() {
-
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -333,7 +358,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청이 들어왔는데 존재하지 않는 미션에 보낸 요청이면 NotFoundException 발생")
     void sabotageMission_missionNotFound() {
-
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -357,7 +381,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청이 들어왔는데 자신의 차례에 보낸 요청이면 BadRequestException 발생")
     void sabotageMission_cannotSabotageAtYourTurn() {
-
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -385,7 +408,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청이 들어왔는데 아무도 완료하지 않은 미션에 보낸 요청이면 BadRequestException 발생")
     void sabotageMission_cannotSabotageToUncompletedMission() {
-
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -394,7 +416,6 @@ public class MissionServiceTest {
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
 
-        // 🌟 생성자 11개 맞춤 (뒤에 null 2개 추가)
         Mission mission = new Mission(35L, room, 4L, null, null, null, null, false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
 
@@ -415,7 +436,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청이 들어왔는데 내가 완료한 미션에 보낸 요청이면 BadRequestException 발생")
     void sabotageMission_cannotSabotageToYourMission() {
-
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -424,7 +444,6 @@ public class MissionServiceTest {
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 9L, 5L, turnStartedAt, turnStartedAt.plusDays(1L), false, null);
 
-        // 🌟 생성자 11개 맞춤
         Mission mission = new Mission(35L, room, 4L, null, member, null, null, false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
 
@@ -445,7 +464,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청이 들어왔는데 이미 이번 턴에 사보타주를 했으면 RuntimeException 발생")
     void sabotageMission_alreadySabotagedAtThisTurn() {
-
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -455,7 +473,6 @@ public class MissionServiceTest {
 
         Room room = new Room(41L, RoomStatus.PLAYING, roomCode, null, null, 34L, 5L, turnStartedAt, turnStartedAt.plusHours(16L), true, null);
 
-        // 🌟 생성자 11개 맞춤
         Mission mission = new Mission(35L, room, 4L, null, opponent, null, null, false, null, null, null);
         MultipartFile image = mock(MultipartFile.class);
 
@@ -473,7 +490,6 @@ public class MissionServiceTest {
     @Test
     @DisplayName("사보타주 요청 처리 성공")
     void sabotageMission_success() {
-
         //given
         long position = 0L;
         String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -493,14 +509,15 @@ public class MissionServiceTest {
         when(playerRepository.findByRoomAndMemberNot(room, member)).thenReturn(Optional.of(new Player(room, opponentMember, PlayerRole.O)));
         when(s3UploadService.uploadImage(any(), eq("sabotage"))).thenReturn(sabotageImageUrl);
 
-        //when (🌟 사보타주 코멘트 전송)
+        //when
         MissionSabotageResponse response = missionService.sabotageMission(member.getMemberUuid(), position, roomCode, image, "허위 인증 사보타주!");
+        executeAfterCommit();
 
         //then
         assertThat(response.room()).isNotNull();
         assertThat(response.mission().sabotagedByOpponent()).isTrue();
         assertThat(response.mission().sabotageImageUrl()).isEqualTo(sabotageImageUrl);
-        assertThat(mission.getSabotageComment()).isEqualTo("허위 인증 사보타주!"); // 🌟 코멘트 저장 검증 추가
+        assertThat(mission.getSabotageComment()).isEqualTo("허위 인증 사보타주!");
 
         assertThat(room.getCurrentTurnSabotaged()).isTrue();
         assertThat(room.getTurnDeadline()).isEqualTo(turnStartedAt.plusHours(18L));
