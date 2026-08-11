@@ -14,6 +14,8 @@ import com.playbit.backend.sse.SseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Map;
@@ -86,8 +88,13 @@ public class PlayerService {
 
             room.startGame(firstTurnMemberId);
 
-            // 게임 시작 정보를 방 전체에 전송
-            sseService.broadcastToRoom(entryCode, Map.of("message", "GAME_STARTED"));
+            // 트랜잭션 커밋 완료 후 게임 시작 정보를 방 전체에 전송
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sseService.broadcastToRoom(entryCode, Map.of("message", "GAME_STARTED"));
+                }
+            });
 
             // 해당 방의 모든 멤버 찾기
             List<Member> players = playerRepository.findByRoom(room).stream()

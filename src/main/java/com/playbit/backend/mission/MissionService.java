@@ -20,6 +20,8 @@ import com.playbit.backend.sse.SseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
@@ -126,8 +128,13 @@ public class MissionService {
                 }
             }
 
-            // 💡 리턴하기 직전, 방에 있는 사람들에게 미션 완료 알림 발송
-            sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_COMPLETED"));
+            // 💡 리턴하기 직전, 트랜잭션 커밋 완료 후 방에 있는 사람들에게 미션 완료 알림 발송
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_COMPLETED"));
+                }
+            });
 
             return response;
 
@@ -184,8 +191,13 @@ public class MissionService {
         room.setCurrentTurnSabotaged(true);
         room.setTurnDeadline(room.getTurnDeadline().minusHours(6));
 
-        // 💡 리턴하기 직전, 사보타주 발생 알림 발송
-        sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
+        // 💡 리턴하기 직전, 트랜잭션 커밋 완료 후 사보타주 발생 알림 발송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sseService.broadcastToRoom(roomCode, Map.of("message", "MISSION_SABOTAGED"));
+            }
+        });
 
         // 리턴 전 상대방에게 알림 전송
         notificationService.sabotageCompleteNotification(roomCode, List.of(opponent.getMember()));
