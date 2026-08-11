@@ -6,6 +6,7 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
+import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
@@ -41,8 +42,8 @@ public class PlayerService {
         if(existingPlayer.isPresent()) {
             return new PlayerJoinResponse(
                     existingPlayer.get().getPlayerId(),
-                    existingPlayer.get().getRole().name(),
-                    existingPlayer.get().getMember().getMemberId()
+                    existingPlayer.get().getMember().getMemberId(),
+                    existingPlayer.get().getRole().name()
             );
         }
 
@@ -96,8 +97,8 @@ public class PlayerService {
         }
         return new PlayerJoinResponse(
                 player.getPlayerId(),
-                player.getRole().name(),
-                player.getMember().getMemberId()
+                player.getMember().getMemberId(),
+                player.getRole().name()
         );
     }
 }
