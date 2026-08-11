@@ -6,6 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record PlayerJoinResponse(
         @Schema(description = "플레이어 ID", example = "5") Long playerId,
         @Schema(description = "회원 ID", example = "34L") Long memberId,
-        @Schema(description = "방", example = "12") String role
+        @Schema(description = "역할", example = "O, X") String role
 ) {
 }

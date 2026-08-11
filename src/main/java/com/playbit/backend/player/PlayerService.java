@@ -97,7 +97,6 @@ public class PlayerService {
             // 게임 시작 알림을 플레이어들에게 전송
             notificationService.roomStartedNotification(entryCode, players);
 
-
         }
         return new PlayerJoinResponse(
                 player.getPlayerId(),
