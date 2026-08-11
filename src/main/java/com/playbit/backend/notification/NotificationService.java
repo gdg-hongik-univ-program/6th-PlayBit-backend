@@ -4,6 +4,7 @@ import com.playbit.backend.member.Member;
 import com.playbit.backend.webPush.WebPushService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +17,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 
     // 미션 완료시 상대방에게 알림을 보냄
+    @Transactional
     public void missionCompleteNotification(String roomCode, List<Member> opponent) {
 
         String title = "상대방 턴 종료!";
@@ -47,6 +49,7 @@ public class NotificationService {
     }
 
     // 게임 시작시 플레이어들에게 알림을 보냄
+    @Transactional
     public void roomStartedNotification(String roomCode, List<Member> members) {
 
         // 멤버들마다 알림 생성하고 저장하기
@@ -78,6 +81,7 @@ public class NotificationService {
     }
 
     // 게임 종료시 플레이어들에게 알림을 보냄
+    @Transactional
     public void roomFinishedNotification(String roomCode, List<Member> members) {
 
         // 멤버들마다 알림 생성하고 저장하기
@@ -109,6 +113,7 @@ public class NotificationService {
     }
 
     // 사보타주 완료시 상대방에게 알림을 보냄
+    @Transactional
     public void sabotageCompleteNotification(String roomCode, List<Member> members) {
 
         // 알림 생성하기
