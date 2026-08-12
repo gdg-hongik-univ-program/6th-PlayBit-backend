@@ -36,13 +36,10 @@ public class GlobalExceptionHandler {
 
     // 404
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleBadRequestException(
-            BadRequestException e) {
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleBadRequestException(BadRequestException e) {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity.status(errorCode.getStatus())
-                .body(
-                        ApiResponse.error(
-                                new ErrorResponse(errorCode.getCode(), errorCode.getMessage())));
+                .body(ApiResponse.error(new ErrorResponse(errorCode.getCode(), errorCode.getMessage())));
     }
 
     // 404
@@ -50,8 +47,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<ErrorResponse>> handleNotFoundException(NotFoundException e) {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity.status(errorCode.getStatus())
-                .body(
-                        ApiResponse.error(
-                                new ErrorResponse(errorCode.getCode(), errorCode.getMessage())));
+                .body(ApiResponse.error(new ErrorResponse(errorCode.getCode(), errorCode.getMessage())));
     }
 }

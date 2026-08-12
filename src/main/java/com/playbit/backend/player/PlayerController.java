@@ -20,10 +20,8 @@ public class PlayerController {
     @Operation(summary = "방 참가자 등록", description = "사용자를 방에 등록시킵니다.")
     @PostMapping("/{entryCode}/players")
     public ResponseEntity<ApiResponse<PlayerJoinResponse>> registerPlayer(
-            @PathVariable("entryCode") String entryCode,
-            @RequestHeader(value = "X-Member-Id") String memberUuid) {
-        return ResponseEntity.ok(
-                ApiResponse.success(playerService.registerPlayer(entryCode, memberUuid)));
+            @PathVariable("entryCode") String entryCode, @RequestHeader(value = "X-Member-Id") String memberUuid) {
+        return ResponseEntity.ok(ApiResponse.success(playerService.registerPlayer(entryCode, memberUuid)));
     }
 
     @Operation(summary = "방 목록 조회", description = "사용자가 입장한 모든 방을 조회합니다.")
@@ -36,8 +34,7 @@ public class PlayerController {
     @Operation(summary = "방 탈퇴", description = "현재 사용자가 방을 탈퇴합니다. 두 명 다 탈퇴하면 방 자체가 삭제됩니다.")
     @DeleteMapping("/{entryCode}/players")
     public ResponseEntity<ApiResponse<Void>> leaveRoom(
-            @PathVariable String entryCode,
-            @RequestHeader(value = "X-Member-Id") String memberUuid) {
+            @PathVariable String entryCode, @RequestHeader(value = "X-Member-Id") String memberUuid) {
         playerService.leaveRoom(entryCode, memberUuid);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

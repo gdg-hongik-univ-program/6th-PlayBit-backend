@@ -43,8 +43,8 @@ dependencies {
 
 spotless {
     java {
-        // 구글 자바 포맷 스타일 적용 (aosp() 소문자)
-        googleJavaFormat('1.19.2').aosp()
+        // 팔란티어 자바 포맷 스타일 적용
+        palantirJavaFormat()
 
         // 사용하지 않는 import 제거
         removeUnusedImports()

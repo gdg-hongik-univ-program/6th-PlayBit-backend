@@ -1,4 +1,4 @@
-package com.playbit.backend.webPush;
+package com.playbit.backend.webpush;
 
 import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
@@ -46,21 +46,19 @@ public class WebPushService {
 
     public URI createSubscription(Subscription subscription, String memberUuid) {
 
-        Member member =
-                memberRepository
-                        .findByMemberUuid(memberUuid)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = memberRepository
+                .findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         String uriStr = "api/subscriptions/" + member.getMemberId().toString();
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uriStr);
 
-        WebPushSubscription webPushSubscription =
-                WebPushSubscription.builder()
-                        .member(member)
-                        .endpoint(subscription.endpoint)
-                        .p256dh(subscription.keys.p256dh)
-                        .auth(subscription.keys.auth)
-                        .build();
+        WebPushSubscription webPushSubscription = WebPushSubscription.builder()
+                .member(member)
+                .endpoint(subscription.endpoint)
+                .p256dh(subscription.keys.p256dh)
+                .auth(subscription.keys.auth)
+                .build();
 
         webPushRepository.save(webPushSubscription);
 
@@ -70,24 +68,17 @@ public class WebPushService {
     public void sendPushToMembers(List<Member> members, String payloadJSON) {
 
         // 멤버 리스트에서 구독 정보 가져오기
-        List<WebPushSubscription> byMemberId =
-                members.stream()
-                        .flatMap(
-                                member ->
-                                        webPushRepository
-                                                .findByMemberMemberId(member.getMemberId())
-                                                .stream())
-                        .toList();
+        List<WebPushSubscription> byMemberId = members.stream()
+                .flatMap(member -> webPushRepository.findByMemberMemberId(member.getMemberId()).stream())
+                .toList();
 
         for (WebPushSubscription webPushSubscription : byMemberId) {
             try {
-
-                Notification notification =
-                        new Notification(
-                                webPushSubscription.getEndpoint(),
-                                webPushSubscription.getP256dh(),
-                                webPushSubscription.getAuth(),
-                                payloadJSON);
+                Notification notification = new Notification(
+                        webPushSubscription.getEndpoint(),
+                        webPushSubscription.getP256dh(),
+                        webPushSubscription.getAuth(),
+                        payloadJSON);
 
                 HttpResponse response = pushService.send(notification);
                 int statusCode = response.getStatusLine().getStatusCode();
@@ -100,7 +91,7 @@ public class WebPushService {
                             "유효하지 않은 구독입니다. DB에서 해당 구독 정보를 삭제해야 합니다. memberId: {}, endpoint: {}",
                             webPushSubscription.getMember().getMemberId(),
                             webPushSubscription.getEndpoint());
-                    // TODO: DB에서 해당 subscription 삭제 로직 호출
+                    webPushRepository.delete(webPushSubscription);
                 } else {
                     log.warn("알림 전송 실패. 상태 코드: " + statusCode);
                 }

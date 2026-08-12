@@ -26,33 +26,25 @@ public class MissionController {
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @PathVariable String entryCode,
             @PathVariable Long position,
-            @Parameter(description = "업로드할 미션 인증 사진 파일 (최대 10MB)", required = true)
-                    @RequestPart(value = "image")
+            @Parameter(description = "업로드할 미션 인증 사진 파일 (최대 10MB)", required = true) @RequestPart(value = "image")
                     MultipartFile image,
             @RequestPart(value = "comment", required = false) String comment) { // 코멘트는 선택이므로 false
         return ResponseEntity.ok()
-                .body(
-                        ApiResponse.success(
-                                missionService.completeMission(
-                                        memberUuid, position, entryCode, image, comment)));
+                .body(ApiResponse.success(
+                        missionService.completeMission(memberUuid, position, entryCode, image, comment)));
     }
 
-    @Operation(
-            summary = "사보타주 및 사진 인증",
-            description = "상대방의 완료된 미션에 사보타주 사진을 업로드하여 상대방의 제한시간을 6시간 감소시킵니다.")
+    @Operation(summary = "사보타주 및 사진 인증", description = "상대방의 완료된 미션에 사보타주 사진을 업로드하여 상대방의 제한시간을 6시간 감소시킵니다.")
     @PatchMapping(value = "/{position}/sabotage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<MissionSabotageResponse>> sabotageMission(
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @PathVariable String entryCode,
             @PathVariable Long position,
-            @Parameter(description = "업로드할 사보타주 인증 사진 파일 (최대 10MB)", required = true)
-                    @RequestPart(value = "image")
+            @Parameter(description = "업로드할 사보타주 인증 사진 파일 (최대 10MB)", required = true) @RequestPart(value = "image")
                     MultipartFile image,
             @RequestPart(value = "comment", required = false) String comment) { // 코멘트는 선택이므로 false
         return ResponseEntity.ok()
-                .body(
-                        ApiResponse.success(
-                                missionService.sabotageMission(
-                                        memberUuid, position, entryCode, image, comment)));
+                .body(ApiResponse.success(
+                        missionService.sabotageMission(memberUuid, position, entryCode, image, comment)));
     }
 }

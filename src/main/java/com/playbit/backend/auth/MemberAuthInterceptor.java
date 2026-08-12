@@ -17,8 +17,7 @@ public class MemberAuthInterceptor implements HandlerInterceptor {
     private final MemberRepository memberRepository;
 
     @Override
-    public boolean preHandle(
-            HttpServletRequest request, HttpServletResponse response, Object handler)
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
 
         // 사전 요청(OPTIONS)은 무조건 통과 (CORS 에러 방지)

@@ -1,14 +1,13 @@
 package com.playbit.backend.member;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Member {
 
     public Member(String memberUuid) {
@@ -32,9 +31,9 @@ public class Member {
     private int consecutiveMissionStreak;
 
     @Column(name = "last_mission_success_date")
-    private java.time.LocalDate lastMissionSuccessDate;
+    private LocalDate lastMissionSuccessDate;
 
-    public void setNickname(String nickname) {
+    public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
 
@@ -43,7 +42,7 @@ public class Member {
     }
 
     public void updateMissionStreak() {
-        java.time.LocalDate today = java.time.LocalDate.now();
+        LocalDate today = LocalDate.now();
         if (lastMissionSuccessDate != null && lastMissionSuccessDate.plusDays(1).isEqual(today)) {
             this.consecutiveMissionStreak++;
         } else {

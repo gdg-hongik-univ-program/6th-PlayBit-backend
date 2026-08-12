@@ -28,12 +28,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class RoomServiceTest {
 
-    @InjectMocks private RoomService roomService;
+    @InjectMocks
+    private RoomService roomService;
 
-    @Mock private RoomRepository roomRepository;
-    @Mock private PlayerRepository playerRepository;
-    @Mock private MemberRepository memberRepository;
-    @Mock private MissionRepository missionRepository;
+    @Mock
+    private RoomRepository roomRepository;
+
+    @Mock
+    private PlayerRepository playerRepository;
+
+    @Mock
+    private MemberRepository memberRepository;
+
+    @Mock
+    private MissionRepository missionRepository;
 
     @Nested
     @DisplayName("방 입장 테스트")
@@ -51,42 +59,29 @@ public class RoomServiceTest {
             Member oppentMember = new Member(2L, "uuid-member-2");
 
             // 정상 진행중인 방
-            Room room =
-                    new Room(
-                            1L,
-                            RoomStatus.PLAYING,
-                            entryCode,
-                            null,
-                            Category.STUDY,
-                            1L,
-                            null,
-                            LocalDateTime.now(),
-                            LocalDateTime.now().plusHours(24),
-                            null,
-                            null);
+            Room room = new Room(
+                    1L,
+                    RoomStatus.PLAYING,
+                    entryCode,
+                    null,
+                    Category.STUDY,
+                    1L,
+                    null,
+                    LocalDateTime.now(),
+                    LocalDateTime.now().plusHours(24),
+                    null,
+                    null);
 
             Player player1 = new Player(room, cuurentMember, PlayerRole.O);
             Player player2 = new Player(room, oppentMember, PlayerRole.X);
 
             // 🌟 11개의 생성자 인자 규격에 맞춰 뒤에 null 2개를 추가합니다. (comment, sabotageComment)
-            Mission mission =
-                    new Mission(
-                            1L,
-                            room,
-                            1L,
-                            Content.STUDY_1,
-                            cuurentMember,
-                            LocalDateTime.now(),
-                            null,
-                            false,
-                            null,
-                            null,
-                            null);
+            Mission mission = new Mission(
+                    1L, room, 1L, Content.STUDY_1, cuurentMember, LocalDateTime.now(), null, false, null, null, null);
 
             // 2. 가짜 객체 행동 정의
             given(roomRepository.findByEntryCode(entryCode)).willReturn(Optional.of(room));
-            given(memberRepository.findByMemberUuid(memberUuid))
-                    .willReturn(Optional.of(cuurentMember));
+            given(memberRepository.findByMemberUuid(memberUuid)).willReturn(Optional.of(cuurentMember));
             given(playerRepository.findByRoom(room)).willReturn(List.of(player1, player2));
             given(missionRepository.findByRoom(room)).willReturn(List.of(mission));
 

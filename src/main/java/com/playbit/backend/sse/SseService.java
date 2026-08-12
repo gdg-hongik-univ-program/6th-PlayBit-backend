@@ -34,11 +34,10 @@ public class SseService {
     // 특정 1명의 파이프에 데이터를 쏘는 헬퍼 메서드
     private void sendToClient(SseEmitter emitter, String emitterId, Object data) {
         try {
-            emitter.send(
-                    SseEmitter.event()
-                            .id(emitterId)
-                            .name("room-update") // 프론트엔드가 이벤트 리스너로 등록할 이름
-                            .data(data));
+            emitter.send(SseEmitter.event()
+                    .id(emitterId)
+                    .name("room-update") // 프론트엔드가 이벤트 리스너로 등록할 이름
+                    .data(data));
         } catch (IOException exception) {
             sseRepository.deleteById(emitterId); // 에러 발생 시 죽은 파이프 삭제
         }

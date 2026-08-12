@@ -24,13 +24,11 @@ public class SseController {
     @Operation(summary = "SSE 구독 요청", description = "SSE 구독을 요청합니다.")
     @GetMapping(value = "/{entryCode}/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(
-            @PathVariable String entryCode,
-            @RequestHeader(value = "X-Member-Id") String memberUuid) {
+            @PathVariable String entryCode, @RequestHeader(value = "X-Member-Id") String memberUuid) {
         // 인터셉터를 통과했으므로 안전하게 memberId를 조회
-        Member member =
-                memberRepository
-                        .findByMemberUuid(memberUuid)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = memberRepository
+                .findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 구독 및 Emitter 반환
         return sseService.subscribe(entryCode, member.getMemberId());
