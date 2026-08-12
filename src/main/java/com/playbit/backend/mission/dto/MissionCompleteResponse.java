@@ -1,5 +1,13 @@
 package com.playbit.backend.mission.dto;
 
 import com.playbit.backend.room.dto.RoomDto;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-public record MissionCompleteResponse(RoomDto room, MissionDto mission) {}
+@AllArgsConstructor
+@Getter
+public class MissionCompleteResponse {
+
+    private RoomDto room;
+    private MissionDto mission;
+}

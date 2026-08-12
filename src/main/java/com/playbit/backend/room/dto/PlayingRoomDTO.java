@@ -8,14 +8,14 @@ import lombok.Getter;
 @Getter
 public class PlayingRoomDto extends RoomDto {
 
-    private final Long currentTurnMemberId;
-    private final Long currentTurnNumber;
-    private final LocalDateTime turnStartedAt;
+    private Long currentTurnMemberId;
+    private Long currentTurnNumber;
+    private LocalDateTime turnStartedAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
-    private final LocalDateTime turnDeadline;
+    private LocalDateTime turnDeadline;
 
-    private final Boolean currentTurnSabotaged;
+    private Boolean currentTurnSabotaged;
 
     PlayingRoomDto(Room room) {
         super(room.getStatus());
