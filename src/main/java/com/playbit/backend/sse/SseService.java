@@ -1,11 +1,10 @@
 package com.playbit.backend.sse;
 
+import java.io.IOException;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -15,7 +14,7 @@ public class SseService {
     private static final Long TIMEOUT = 60L * 1000 * 60; // 1시간
 
     // 클라이언트가 구독(sub)을 요청할 때 실행되는 메서드
-    public SseEmitter subscribe(String entryCode, Long memberId){
+    public SseEmitter subscribe(String entryCode, Long memberId) {
         String emitterId = entryCode + "_" + memberId;
         SseEmitter emitter = new SseEmitter(TIMEOUT);
 
@@ -35,10 +34,11 @@ public class SseService {
     // 특정 1명의 파이프에 데이터를 쏘는 헬퍼 메서드
     private void sendToClient(SseEmitter emitter, String emitterId, Object data) {
         try {
-            emitter.send(SseEmitter.event()
-                    .id(emitterId)
-                    .name("room-update") // 프론트엔드가 이벤트 리스너로 등록할 이름
-                    .data(data));
+            emitter.send(
+                    SseEmitter.event()
+                            .id(emitterId)
+                            .name("room-update") // 프론트엔드가 이벤트 리스너로 등록할 이름
+                            .data(data));
         } catch (IOException exception) {
             sseRepository.deleteById(emitterId); // 에러 발생 시 죽은 파이프 삭제
         }

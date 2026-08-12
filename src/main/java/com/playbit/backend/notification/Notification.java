@@ -2,9 +2,8 @@ package com.playbit.backend.notification;
 
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Getter
@@ -26,18 +25,13 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    @Column
-    private String title;
+    @Column private String title;
 
-    @Column
-    private String content;
+    @Column private String content;
 
-    @Column
-    private LocalDateTime createdAt;
+    @Column private LocalDateTime createdAt;
 
-    @Column
-    private Long senderId;
+    @Column private Long senderId;
 
-    @Column
-    private Boolean isRead;
+    @Column private Boolean isRead;
 }

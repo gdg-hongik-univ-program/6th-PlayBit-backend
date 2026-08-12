@@ -1,7 +1,7 @@
 package com.playbit.backend.auth;
 
-import com.playbit.backend.common.ErrorCode;
 import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.MemberRepository; // 본인 경로에 맞게 확인
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,12 +12,14 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
 @RequiredArgsConstructor
-public class MemberAuthInterceptor implements HandlerInterceptor{
+public class MemberAuthInterceptor implements HandlerInterceptor {
 
     private final MemberRepository memberRepository;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{
+    public boolean preHandle(
+            HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
 
         // 사전 요청(OPTIONS)은 무조건 통과 (CORS 에러 방지)
         if (request.getMethod().equals("OPTIONS")) {
