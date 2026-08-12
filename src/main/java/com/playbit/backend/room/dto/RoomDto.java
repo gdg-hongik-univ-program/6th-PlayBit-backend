@@ -3,6 +3,7 @@ package com.playbit.backend.room.dto;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.playbit.backend.room.RoomStatus;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @JsonTypeInfo(
@@ -15,11 +16,7 @@ import lombok.Getter;
     @JsonSubTypes.Type(value = FinishedRoomDto.class, name = "FINISHED")
 })
 @Getter
+@AllArgsConstructor
 public class RoomDto {
-
     protected RoomStatus status;
-
-    public RoomDto(RoomStatus status) {
-        this.status = status;
-    }
 }
