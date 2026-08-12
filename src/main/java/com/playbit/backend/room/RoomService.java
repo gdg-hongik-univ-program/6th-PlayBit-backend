@@ -1,6 +1,7 @@
 package com.playbit.backend.room;
 
-import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.event.RoomUpdatedEvent;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
@@ -13,7 +14,6 @@ import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
-import com.playbit.backend.sse.SseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -159,22 +159,31 @@ public class RoomService {
 
     //카테고리 선택후 방 생성
     @Transactional
-    public SetRoomResponse setRoom(String entryCode, String memberUuid, Category category){
+    public SetRoomResponse setRoom(String entryCode, String memberUuid, Category category, String roomName){
+        // 방 존재 검증
         Room room = roomRepository.findByEntryCode(entryCode)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
+        // 방 이름 중복 검증
+        if (roomRepository.findByRoomName(roomName).isPresent()) {
+            throw new BadRequestException(ErrorCode.ROOM_NAME_DUPLICATED);
+        }
+
+        // 회원 검증
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        //카테고리 업데이트
+        // 카테고리와 방 이름 업데이트
         room.updateCategory(category);
+        room.setRoomName(roomName);
 
-        //미션 객체 생성 후 DB에 저장
+        // 미션 객체 생성 후 DB에 저장 (batch 저장)
         List<Content> missions = getMissionsByCategory(category);
-        for (int i =0; i <9; i++){
-            Mission mission = new Mission(room,(long) (i+1), missions.get(i));
-            missionRepository.save(mission);
+        List<Mission> missionList = new ArrayList<>();
+        for (int i = 0; i < 9; i++) {
+            missionList.add(new Mission(room, (long) (i + 1), missions.get(i)));
         }
+        missionRepository.saveAll(missionList);
 
         return new SetRoomResponse();
     }

@@ -1,6 +1,6 @@
 package com.playbit.backend.mission;
 
-import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.event.GameEndedEvent;
 import com.playbit.backend.common.event.MissionCompletedEvent;
 import com.playbit.backend.common.event.MissionSabotagedEvent;
@@ -11,7 +11,6 @@ import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
 import com.playbit.backend.mission.dto.MissionDTO;
 import com.playbit.backend.mission.dto.MissionSabotageResponse;
-import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
@@ -97,6 +96,8 @@ public class MissionService {
             String imageUrl = s3UploadService.uploadImage(image, "missions");
             // 해당 칸을 해당 멤버 아이디와 사진 URL로 채우고 (코멘트는 선택),  시간을 기록한다.
             mission.completeMission(member, imageUrl, comment);
+            // 미션 성공 시 이벤트 발행 (스트릭 및 총 성공 수는 이벤트 리스너에서 처리)
+            applicationEventPublisher.publishEvent(new com.playbit.backend.common.event.MissionSuccessEvent(roomCode, member));
 
             MissionCompleteResponse response; // 💡 응답을 미리 담아둘 변수 선언
 
@@ -185,9 +186,6 @@ public class MissionService {
 
         //사보타주 완료 이벤트 발행
         applicationEventPublisher.publishEvent(new MissionSabotagedEvent(roomCode, List.of(opponent.getMember())));
-
-        // 리턴 전 상대방에게 알림 전송
-        notificationService.sabotageCompleteNotification(roomCode, List.of(opponent.getMember()));
 
         return new MissionSabotageResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
     }

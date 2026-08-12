@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import jakarta.persistence.Column;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,6 +40,9 @@ public class Room {
 
     @Enumerated(EnumType.STRING)
     private Category category;
+
+    @Column(unique = true)
+    private String roomName;
 
     private Long currentTurnMemberId;
 

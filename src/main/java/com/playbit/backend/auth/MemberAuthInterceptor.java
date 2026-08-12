@@ -1,6 +1,6 @@
 package com.playbit.backend.auth;
 
-import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.MemberRepository; // 본인 경로에 맞게 확인

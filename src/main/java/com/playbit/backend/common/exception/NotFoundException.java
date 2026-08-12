@@ -1,6 +1,5 @@
 package com.playbit.backend.common.exception;
 
-import com.playbit.backend.common.ErrorCode;
 import lombok.Getter;
 
 @Getter

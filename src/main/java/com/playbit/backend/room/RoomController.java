@@ -40,13 +40,13 @@ public class RoomController {
     }
 
     @PatchMapping("/{entryCode}/category")
-    @Operation(summary = "카테고리 선택", description = "사용자가 선택한 카테고리를 반영합니다.")
+    @Operation(summary = "카테고리 선택, 방 이름 지정", description = "사용자가 선택한 카테고리를 반영하고 방 이름을 설정합니다.")
     public ResponseEntity<ApiResponse<SetRoomResponse>> setRoom(
             @PathVariable String entryCode,
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @RequestBody CategoryRequest request
     ){
         return ResponseEntity.ok(ApiResponse.success(roomService
-                .setRoom(entryCode, memberUuid, request.category())));
+                .setRoom(entryCode, memberUuid, request.category(), request.roomName())));
     }
 }

@@ -1,6 +1,6 @@
 package com.playbit.backend.sse;
 
-import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;

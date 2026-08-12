@@ -1,12 +1,12 @@
 package com.playbit.backend.player;
 
-import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.event.GameStartedEvent;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.notification.NotificationService;
+import com.playbit.backend.player.dto.GetRoomResponse;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
@@ -100,5 +100,44 @@ public class PlayerService {
                 player.getMember().getMemberId(),
                 player.getRole().name()
         );
+    }
+
+    /**
+     * 현재 사용자가 지정된 방에서 탈퇴합니다.
+     * 탈퇴 후 방에 플레이어가 남아있지 않으면 방 자체를 삭제합니다.
+     */
+    @Transactional
+    public void leaveRoom(String entryCode, String memberUuid) {
+        // 1) 방 검증
+        Room room = roomRepository.findByEntryCode(entryCode)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
+
+        // 2) 회원 검증
+        Member member = memberRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 3) 플레이어(참가자) 조회 & 삭제
+        Player player = playerRepository.findByRoomAndMember(room, member)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_NOT_FOUND));
+        playerRepository.delete(player);
+
+        // 4) 방에 남은 플레이어가 없으면 방 삭제
+        long remaining = playerRepository.countByRoom(room);
+        if (remaining == 0) {
+            roomRepository.delete(room);
+        }
+    }
+
+    @Transactional
+    public GetRoomResponse getRooms(String memberUuid){
+
+        Member member = memberRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        List<GetRoomResponse.RoomInfo> rooms = playerRepository.findByMember(member).stream()
+                .map(player -> player.getRoom())
+                .map(room -> GetRoomResponse.RoomInfo.fromRoom(room)).toList();
+
+        return new GetRoomResponse(rooms);
     }
 }

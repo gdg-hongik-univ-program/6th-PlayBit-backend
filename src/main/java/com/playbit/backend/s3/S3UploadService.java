@@ -1,6 +1,6 @@
 package com.playbit.backend.s3;
 
-import com.playbit.backend.common.ErrorCode;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;

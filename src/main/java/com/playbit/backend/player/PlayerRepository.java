@@ -13,5 +13,5 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     Optional<Player> findByRoomAndMember(Room room, Member member);
     Optional<Player> findByRoomAndMemberNot(Room room, Member member);
     List<Player> findByRoom(Room room);
-    List<Player> member(Member member);
+    List<Player> findByMember(Member member);
 }

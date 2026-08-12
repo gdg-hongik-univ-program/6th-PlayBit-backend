@@ -1,6 +1,8 @@
 package com.playbit.backend.member;
 
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.dto.MemberDTO;
+import com.playbit.backend.member.dto.MemberStatsDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,25 @@ public class MemberService {
         // uuid 중복 확률은 극히 드물어 성능을 위해 중복 검사 로직 생략하고 바로 등록
         memberRepository.save(new Member(uuid.toString()));
 
-        return new MemberDTO(uuid);
+        return new MemberDTO(uuid, null);
+    }
+
+    @Transactional
+    public void setMemberNickname(String memberUuid, String nickname) {
+        Member member = memberRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new NotFoundException(com.playbit.backend.common.exception.ErrorCode.MEMBER_NOT_FOUND));
+        member.setNickname(nickname);
+    }
+
+    @Transactional(readOnly = true)
+    public MemberStatsDTO getMemberStats(String memberUuid) {
+        Member member = memberRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new NotFoundException(com.playbit.backend.common.exception.ErrorCode.MEMBER_NOT_FOUND));
+        return new MemberStatsDTO(
+                member.getNickname(),
+                member.getTotalMissionSuccess(),
+                member.getConsecutiveMissionStreak()
+        );
     }
 }
+

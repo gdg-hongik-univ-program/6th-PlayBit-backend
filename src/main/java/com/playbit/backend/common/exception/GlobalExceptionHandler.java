@@ -1,9 +1,7 @@
-package com.playbit.backend.common;
+package com.playbit.backend.common.exception;
 
 import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.common.dto.ErrorResponse;
-import com.playbit.backend.common.exception.BadRequestException;
-import com.playbit.backend.common.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
