@@ -1,16 +1,13 @@
 package com.playbit.backend.room;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
-
-import jakarta.persistence.Column;
-
-import java.time.LocalDateTime;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -19,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Room {
 
-    public Room(RoomStatus status, Category category, String entryCode){
+    public Room(RoomStatus status, Category category, String entryCode) {
         this.status = status;
         this.category = category;
         this.entryCode = entryCode;
@@ -56,7 +53,7 @@ public class Room {
 
     private Boolean isDraw;
 
-    public void startGame(Long firstTurnMemberId){
+    public void startGame(Long firstTurnMemberId) {
         this.status = RoomStatus.PLAYING;
         this.currentTurnMemberId = firstTurnMemberId;
         this.currentTurnNumber = 1L;
@@ -64,7 +61,7 @@ public class Room {
         this.turnDeadline = LocalDateTime.now().plusHours(24);
     }
 
-    public void updateCategory(Category category){
+    public void updateCategory(Category category) {
         this.category = category;
     }
 

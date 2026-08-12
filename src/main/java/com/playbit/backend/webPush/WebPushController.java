@@ -3,12 +3,11 @@ package com.playbit.backend.webPush;
 import com.playbit.backend.common.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import nl.martijndwars.webpush.Subscription;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @Tag(name = "Subscription API", description = "구독 관련 API입니다.")
 @RestController

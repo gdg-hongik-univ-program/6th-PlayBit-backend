@@ -9,11 +9,10 @@ import lombok.Getter;
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
         property = "status",
-        visible = true
-)
+        visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = PlayingRoomDto.class, name = "PLAYING"),
-        @JsonSubTypes.Type(value = FinishedRoomDto.class, name = "FINISHED")
+    @JsonSubTypes.Type(value = PlayingRoomDto.class, name = "PLAYING"),
+    @JsonSubTypes.Type(value = FinishedRoomDto.class, name = "FINISHED")
 })
 @Getter
 public class RoomDto {

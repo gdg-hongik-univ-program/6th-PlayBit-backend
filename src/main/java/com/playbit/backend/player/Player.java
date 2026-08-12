@@ -1,13 +1,11 @@
 package com.playbit.backend.player;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.room.Room;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -15,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Player {
 
-    public Player(Room room, Member member, PlayerRole role){
+    public Player(Room room, Member member, PlayerRole role) {
         this.room = room;
         this.member = member;
         this.role = role;
@@ -35,5 +33,4 @@ public class Player {
 
     @Enumerated(EnumType.STRING)
     private PlayerRole role;
-
 }

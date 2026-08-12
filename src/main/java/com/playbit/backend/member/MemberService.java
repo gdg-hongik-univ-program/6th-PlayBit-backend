@@ -3,11 +3,10 @@ package com.playbit.backend.member;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.dto.MemberCreateResponse;
 import com.playbit.backend.member.dto.MemberStatsResponse;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,20 +28,30 @@ public class MemberService {
 
     @Transactional
     public void setMemberNickname(String memberUuid, String nickname) {
-        Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(com.playbit.backend.common.exception.ErrorCode.MEMBER_NOT_FOUND));
+        Member member =
+                memberRepository
+                        .findByMemberUuid(memberUuid)
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                com.playbit.backend.common.exception.ErrorCode
+                                                        .MEMBER_NOT_FOUND));
         member.setNickname(nickname);
     }
 
     @Transactional(readOnly = true)
     public MemberStatsResponse getMemberStats(String memberUuid) {
-        Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(com.playbit.backend.common.exception.ErrorCode.MEMBER_NOT_FOUND));
+        Member member =
+                memberRepository
+                        .findByMemberUuid(memberUuid)
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                com.playbit.backend.common.exception.ErrorCode
+                                                        .MEMBER_NOT_FOUND));
         return new MemberStatsResponse(
                 member.getNickname(),
                 member.getTotalMissionSuccess(),
-                member.getConsecutiveMissionStreak()
-        );
+                member.getConsecutiveMissionStreak());
     }
 }
-

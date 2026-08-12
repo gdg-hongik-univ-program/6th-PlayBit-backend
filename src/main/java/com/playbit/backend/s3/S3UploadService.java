@@ -1,8 +1,10 @@
 package com.playbit.backend.s3;
 
-import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
+import java.io.IOException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import java.io.IOException;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -30,9 +29,7 @@ public class S3UploadService {
     @Value("${spring.cloud.aws.region.static}")
     private String region;
 
-    /**
-     * 파일을 S3에 업로드하고 접근 가능한 URL을 반환합니다.
-     */
+    /** 파일을 S3에 업로드하고 접근 가능한 URL을 반환합니다. */
     public String uploadImage(MultipartFile image, String directory) {
         if (image == null || image.isEmpty()) {
             throw new NotFoundException(ErrorCode.IMAGE_NOT_FOUND);
@@ -44,18 +41,21 @@ public class S3UploadService {
             String uniqueFilename = directory + "/" + UUID.randomUUID() + "." + extension;
 
             // 업로드 요청 객체 조립
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(uniqueFilename)
-                    .contentType(image.getContentType())
-                    .build();
+            PutObjectRequest putObjectRequest =
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(uniqueFilename)
+                            .contentType(image.getContentType())
+                            .build();
 
             // S3Client를 통해 S3로 파일 스트림 전송
-            s3Client.putObject(putObjectRequest,
+            s3Client.putObject(
+                    putObjectRequest,
                     RequestBody.fromInputStream(image.getInputStream(), image.getSize()));
 
             // 업로드 완료 후, 접속 가능한 이미지 주소(URL)를 수동으로 조합하여 반환
-            return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, uniqueFilename);
+            return String.format(
+                    "https://%s.s3.%s.amazonaws.com/%s", bucketName, region, uniqueFilename);
 
         } catch (IOException e) {
             log.error("S3 파일 업로드 중 오류 발생", e);

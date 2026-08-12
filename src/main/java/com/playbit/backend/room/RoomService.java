@@ -1,8 +1,8 @@
 package com.playbit.backend.room;
 
+import com.playbit.backend.common.event.RoomUpdatedEvent;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.ErrorCode;
-import com.playbit.backend.common.event.RoomUpdatedEvent;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
@@ -14,15 +14,14 @@ import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,20 +33,23 @@ public class RoomService {
     private final MissionRepository missionRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    //방 입장하기
+    // 방 입장하기
     @Transactional
-    public EnterRoomResponse enterRoom(String entryCode, String memberUuid){
+    public EnterRoomResponse enterRoom(String entryCode, String memberUuid) {
         // 입장코드 이용한 방 검증
-        Room room = roomRepository.findByEntryCode(entryCode)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
+        Room room =
+                roomRepository
+                        .findByEntryCode(entryCode)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         // 2. DB에서 플레이어 및 미션 목록 가져오기
         List<Player> players = playerRepository.findByRoom(room);
         List<Mission> missions = missionRepository.findByRoom(room);
 
-        Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+        Member member =
+                memberRepository
+                        .findByMemberUuid(memberUuid)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         // SSE 알림을 위해 방 상태 추적하는 변수
         boolean isRoomUpdated = false;
@@ -58,11 +60,15 @@ public class RoomService {
                 && LocalDateTime.now().isAfter(room.getTurnDeadline())) {
 
             // 현재 턴이 아닌 사람 = 다음 턴을 받을 상대방 찾기
-            Long opponentMemberId = players.stream()
-                    .map(p -> p.getMember().getMemberId())
-                    .filter(id -> !id.equals(room.getCurrentTurnMemberId()))
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.PLAYER_OPPONENT_NOT_FOUND));
+            Long opponentMemberId =
+                    players.stream()
+                            .map(p -> p.getMember().getMemberId())
+                            .filter(id -> !id.equals(room.getCurrentTurnMemberId()))
+                            .findFirst()
+                            .orElseThrow(
+                                    () ->
+                                            new NotFoundException(
+                                                    ErrorCode.PLAYER_OPPONENT_NOT_FOUND));
 
             // 턴 업데이트
             room.setCurrentTurnMemberId(opponentMemberId);
@@ -75,38 +81,41 @@ public class RoomService {
         }
 
         // 4. Mission 엔티티 -> MissionItem DTO 변환
-        List<EnterRoomResponse.MissionItem> missionItems = missions.stream()
-                .map(mission -> {
-                    // completedBy가 null인지 먼저 확인하고, null이 아니면 memberId를 추출
-                    Long completedMemberId = (mission.getCompletedBy() != null)
-                            ? mission.getCompletedBy().getMemberId()
-                            : null;
+        List<EnterRoomResponse.MissionItem> missionItems =
+                missions.stream()
+                        .map(
+                                mission -> {
+                                    // completedBy가 null인지 먼저 확인하고, null이 아니면 memberId를 추출
+                                    Long completedMemberId =
+                                            (mission.getCompletedBy() != null)
+                                                    ? mission.getCompletedBy().getMemberId()
+                                                    : null;
 
-                    return new EnterRoomResponse.MissionItem(
-                            mission.getPosition(),
-                            mission.getContent().getDescription(),
-                            completedMemberId,
-                            mission.getCompletedAt()
-                    );
-                })
-                .toList();
+                                    return new EnterRoomResponse.MissionItem(
+                                            mission.getPosition(),
+                                            mission.getContent().getDescription(),
+                                            completedMemberId,
+                                            mission.getCompletedAt());
+                                })
+                        .toList();
 
         // 5. Player 엔티티 -> PlayerItem DTO 변환
-        List<EnterRoomResponse.PlayerItem> playerItems = players.stream()
-                .map(player -> new EnterRoomResponse.PlayerItem(
-                        player.getMember().getMemberId(),
-                        player.getRole()
-                ))
-                .toList();
+        List<EnterRoomResponse.PlayerItem> playerItems =
+                players.stream()
+                        .map(
+                                player ->
+                                        new EnterRoomResponse.PlayerItem(
+                                                player.getMember().getMemberId(), player.getRole()))
+                        .toList();
 
         // 6. 승자 ID 추출 (진행 중일 때는 null)
         Long winnerId = (room.getWinner() != null) ? room.getWinner().getMemberId() : null;
 
         // 업데이트 변수가 true 라면 방 전체 유저에게 화면을 갱신하라고 SSE 알림 발송
-            if (isRoomUpdated) {
+        if (isRoomUpdated) {
 
-                eventPublisher.publishEvent(new RoomUpdatedEvent(entryCode));
-            }
+            eventPublisher.publishEvent(new RoomUpdatedEvent(entryCode));
+        }
 
         // 7. 최종 완성된 DTO 반환
         return new EnterRoomResponse(
@@ -120,13 +129,12 @@ public class RoomService {
                 room.getCurrentTurnSabotaged(),
                 missionItems,
                 playerItems,
-                winnerId
-        );
+                winnerId);
     }
 
-    //방 생성
+    // 방 생성
     @Transactional
-    public RoomCreateResponse createRoom(){
+    public RoomCreateResponse createRoom() {
 
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         SecureRandom random = new SecureRandom();
@@ -145,24 +153,29 @@ public class RoomService {
 
         roomRepository.save(room);
 
-        //Category Enum의 모든 값을 순회하며 한글 이름까지 추출
-        List<RoomCreateResponse.CategoryItem> categoryItemList = Arrays.stream(Category.values())
-                .map(category -> new RoomCreateResponse.CategoryItem(
-                        category.name(),            // "STUDY"
-                        category.getDescription()   // "공부"
-                ))
-                .toList();
+        // Category Enum의 모든 값을 순회하며 한글 이름까지 추출
+        List<RoomCreateResponse.CategoryItem> categoryItemList =
+                Arrays.stream(Category.values())
+                        .map(
+                                category ->
+                                        new RoomCreateResponse.CategoryItem(
+                                                category.name(), // "STUDY"
+                                                category.getDescription() // "공부"
+                                                ))
+                        .toList();
 
-        return new RoomCreateResponse(code.toString(),categoryItemList);
-
+        return new RoomCreateResponse(code.toString(), categoryItemList);
     }
 
-    //카테고리 선택후 방 생성
+    // 카테고리 선택후 방 생성
     @Transactional
-    public SetRoomResponse setRoom(String entryCode, String memberUuid, Category category, String roomName){
+    public SetRoomResponse setRoom(
+            String entryCode, String memberUuid, Category category, String roomName) {
         // 방 존재 검증
-        Room room = roomRepository.findByEntryCode(entryCode)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
+        Room room =
+                roomRepository
+                        .findByEntryCode(entryCode)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         // 방 이름 중복 검증
         if (roomRepository.findByRoomName(roomName).isPresent()) {
@@ -170,8 +183,10 @@ public class RoomService {
         }
 
         // 회원 검증
-        Member member = memberRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member =
+                memberRepository
+                        .findByMemberUuid(memberUuid)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 카테고리와 방 이름 업데이트
         room.updateCategory(category);
@@ -191,11 +206,12 @@ public class RoomService {
     // 카테고리에 따라 미션 내용 반환해주는 헬퍼 메서드
     private List<Content> getMissionsByCategory(Category category) {
 
-        List<Content> missions = Arrays.stream(Content.values())
-                .filter(content -> content.getCategory() == category)
-                .collect(Collectors.toList());
+        List<Content> missions =
+                Arrays.stream(Content.values())
+                        .filter(content -> content.getCategory() == category)
+                        .collect(Collectors.toList());
 
-        //미션 자동으로 섞기
+        // 미션 자동으로 섞기
         Collections.shuffle(missions);
 
         return missions;

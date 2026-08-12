@@ -16,8 +16,13 @@ public class MissionSuccessListener {
     @Transactional
     public void handleMissionSuccess(MissionSuccessEvent event) {
         // Fetch fresh member entity to ensure we are in a managed context
-        Member member = memberRepository.findByMemberUuid(event.member().getMemberUuid())
-                .orElseThrow(() -> new IllegalStateException("Member not found for MissionSuccessEvent"));
+        Member member =
+                memberRepository
+                        .findByMemberUuid(event.member().getMemberUuid())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "Member not found for MissionSuccessEvent"));
 
         // Update total mission success count
         member.incrementMissionSuccess();

@@ -1,11 +1,10 @@
 package com.playbit.backend.member;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -38,6 +37,7 @@ public class Member {
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
+
     public void incrementMissionSuccess() {
         this.totalMissionSuccess++;
     }
@@ -51,5 +51,4 @@ public class Member {
         }
         this.lastMissionSuccessDate = today;
     }
-
 }

@@ -2,13 +2,12 @@ package com.playbit.backend.webPush;
 
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
-        import lombok.AccessLevel;
+import java.time.LocalDateTime;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import nl.martijndwars.webpush.Subscription;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "web_push_subscription")
@@ -45,7 +44,6 @@ public class WebPushSubscription {
         this.createdAt = LocalDateTime.now();
     }
 
-
     @Builder
     public WebPushSubscription(Member member, String endpoint, String p256dh, String auth) {
         this.member = member;
@@ -56,10 +54,9 @@ public class WebPushSubscription {
 
     // WebPushSubscription (엔티티) -> Subscription (외부 라이브러리 클래스) 변환 헬퍼 메서드
     public static Subscription fromWebPushSubscription(WebPushSubscription webPushSubscription) {
-        Subscription.Keys keys = new Subscription.Keys(
-                webPushSubscription.getP256dh(),
-                webPushSubscription.getAuth()
-        );
+        Subscription.Keys keys =
+                new Subscription.Keys(
+                        webPushSubscription.getP256dh(), webPushSubscription.getAuth());
         return new Subscription(webPushSubscription.getEndpoint(), keys);
     }
 }

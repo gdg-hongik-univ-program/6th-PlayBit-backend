@@ -44,7 +44,7 @@ public class CorsConfig implements WebMvcConfigurer {
 
     // ✅ 인터셉터 설정은 그대로 유지합니다.
     @Override
-    public void addInterceptors(InterceptorRegistry registry){
+    public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(memberAuthInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/members");
