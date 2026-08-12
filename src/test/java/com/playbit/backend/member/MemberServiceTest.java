@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.playbit.backend.member.dto.MemberCreateResponse;
+import com.playbit.backend.member.dto.CreateMemberResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class MemberServiceTest {
 
-    @Mock private MemberRepository memberRepository;
+    @Mock
+    private MemberRepository memberRepository;
 
-    @InjectMocks private MemberService memberService;
+    @InjectMocks
+    private MemberService memberService;
 
     @Test
     @DisplayName("새로운 회원이 성공적으로 생성되고 UUID가 반환되어야 한다")
@@ -26,7 +28,7 @@ public class MemberServiceTest {
         // given
 
         // when
-        MemberCreateResponse result = memberService.createMember();
+        CreateMemberResponse result = memberService.createMember();
 
         // then
         // 생성된 DTO가 null이 아닌지, uuid가 null이 아닌지 확인

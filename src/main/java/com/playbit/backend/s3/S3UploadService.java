@@ -35,27 +35,28 @@ public class S3UploadService {
             throw new NotFoundException(ErrorCode.IMAGE_NOT_FOUND);
         }
 
+        String contentType = image.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BadRequestException(ErrorCode.INVALID_IMAGE_FORMAT);
+        }
+
         try {
             // 원본 파일명에서 확장자 추출 및 고유한 파일명 생성
             String extension = StringUtils.getFilenameExtension(image.getOriginalFilename());
             String uniqueFilename = directory + "/" + UUID.randomUUID() + "." + extension;
 
             // 업로드 요청 객체 조립
-            PutObjectRequest putObjectRequest =
-                    PutObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(uniqueFilename)
-                            .contentType(image.getContentType())
-                            .build();
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(uniqueFilename)
+                    .contentType(image.getContentType())
+                    .build();
 
             // S3Client를 통해 S3로 파일 스트림 전송
-            s3Client.putObject(
-                    putObjectRequest,
-                    RequestBody.fromInputStream(image.getInputStream(), image.getSize()));
+            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(image.getInputStream(), image.getSize()));
 
             // 업로드 완료 후, 접속 가능한 이미지 주소(URL)를 수동으로 조합하여 반환
-            return String.format(
-                    "https://%s.s3.%s.amazonaws.com/%s", bucketName, region, uniqueFilename);
+            return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, uniqueFilename);
 
         } catch (IOException e) {
             log.error("S3 파일 업로드 중 오류 발생", e);

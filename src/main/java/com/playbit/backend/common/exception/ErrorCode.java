@@ -20,17 +20,14 @@ public enum ErrorCode {
     // Mission
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "MS001", "미션을 찾을 수 없습니다."),
     MISSION_CANNOT_SABOTAGE_AT_YOUR_TURN(HttpStatus.BAD_REQUEST, "MS002", "자신의 차례에는 사보타주가 불가합니다."),
-    MISSION_CANNOT_SABOTAGE_TO_YOUR_MISSION(
-            HttpStatus.BAD_REQUEST, "MS003", "자신이 완료한 미션은 사보타주가 불가합니다."),
-    MISSION_CANNOT_SABOTAGE_TO_UNCOMPLETED_MISSION(
-            HttpStatus.BAD_REQUEST, "MS004", "완료되지 않은 미션에는 사보타주가 불가합니다."),
+    MISSION_CANNOT_SABOTAGE_TO_YOUR_MISSION(HttpStatus.BAD_REQUEST, "MS003", "자신이 완료한 미션은 사보타주가 불가합니다."),
+    MISSION_CANNOT_SABOTAGE_TO_UNCOMPLETED_MISSION(HttpStatus.BAD_REQUEST, "MS004", "완료되지 않은 미션에는 사보타주가 불가합니다."),
 
     // Room
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "방을 찾을 수 없습니다."),
     ROOM_FINISHED(HttpStatus.BAD_REQUEST, "R002", "종료된 게임입니다."),
     ROOM_NOT_YOUR_TURN(HttpStatus.BAD_REQUEST, "R003", "해당 사용자의 차례가 아닙니다."),
-    ROOM_ALREADY_SABOTAGED_AT_THIS_TURN(
-            HttpStatus.BAD_REQUEST, "R004", "이번 턴에 이미 한 번의 사보타주 기회를 사용하였습니다."),
+    ROOM_ALREADY_SABOTAGED_AT_THIS_TURN(HttpStatus.BAD_REQUEST, "R004", "이번 턴에 이미 한 번의 사보타주 기회를 사용하였습니다."),
     ROOM_NAME_DUPLICATED(HttpStatus.BAD_REQUEST, "R005", "이미 사용중인 방 이름입니다."),
 
     // Player
@@ -41,7 +38,8 @@ public enum ErrorCode {
 
     // S3
     IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "I001", "이미지 파일을 찾을 수 없습니다."),
-    IMAGE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "I002", "이미지 업로드에 실패했습니다.");
+    IMAGE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "I002", "이미지 업로드에 실패했습니다."),
+    INVALID_IMAGE_FORMAT(HttpStatus.BAD_REQUEST, "I003", "지원하지 않는 이미지 형식입니다.");
 
     private final HttpStatus status;
     private final String code;

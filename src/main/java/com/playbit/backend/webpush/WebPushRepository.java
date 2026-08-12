@@ -1,4 +1,4 @@
-package com.playbit.backend.webPush;
+package com.playbit.backend.webpush;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;

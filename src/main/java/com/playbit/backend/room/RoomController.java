@@ -22,18 +22,16 @@ public class RoomController {
 
     @Operation(summary = "방 조회", description = "게임 화면에 필요한 정보를 업데이트하고 로드합니다.")
     @GetMapping("/{entryCode}")
-    public ResponseEntity<ApiResponse<EnterRoomResponse>> enterRoom(
-            @PathVariable String entryCode,
-            @RequestHeader(value = "X-Member-Id") String memberUuid) {
-        return ResponseEntity.ok(ApiResponse.success(roomService.enterRoom(entryCode, memberUuid)));
+    public ResponseEntity<ApiResponse<EnterRoomResponse>> getRoomInfo(
+            @PathVariable String entryCode, @RequestHeader(value = "X-Member-Id") String memberUuid) {
+        return ResponseEntity.ok(ApiResponse.success(roomService.getRoomInfo(entryCode, memberUuid)));
     }
 
     @Operation(summary = "빈 방 생성", description = "임시 방을 생성하고 입장 코드를 반환합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<RoomCreateResponse>> createRoom(
             @RequestHeader(value = "X-Member-Id") String memberUuid) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(roomService.createRoom()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(roomService.createRoom(memberUuid)));
     }
 
     @Operation(summary = "카테고리 선택, 방 이름 지정", description = "사용자가 선택한 카테고리를 반영하고 방 이름을 설정합니다.")
@@ -42,9 +40,7 @@ public class RoomController {
             @PathVariable String entryCode,
             @RequestHeader(value = "X-Member-Id") String memberUuid,
             @RequestBody SetRoomRequest request) {
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        roomService.setRoom(
-                                entryCode, memberUuid, request.category(), request.roomName())));
+        return ResponseEntity.ok(ApiResponse.success(
+                roomService.setRoom(entryCode, memberUuid, request.category(), request.roomName())));
     }
 }

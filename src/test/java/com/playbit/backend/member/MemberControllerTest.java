@@ -5,7 +5,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.playbit.backend.member.dto.MemberCreateResponse;
+import com.playbit.backend.member.dto.CreateMemberResponse;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,11 +18,14 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(MemberController.class)
 public class MemberControllerTest {
 
-    @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @MockitoBean private MemberService memberService;
+    @MockitoBean
+    private MemberService memberService;
 
-    @MockitoBean private MemberRepository memberRepository;
+    @MockitoBean
+    private MemberRepository memberRepository;
 
     @Test
     @DisplayName("사용자에게 uuid를 발급하고 성공적으로 등록한다.")
@@ -30,7 +33,7 @@ public class MemberControllerTest {
 
         // given
         UUID uuid = UUID.randomUUID();
-        MemberCreateResponse mockResponse = new MemberCreateResponse(uuid, null);
+        CreateMemberResponse mockResponse = new CreateMemberResponse(uuid, null);
         given(memberService.createMember()).willReturn(mockResponse);
 
         // when & then

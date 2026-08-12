@@ -2,16 +2,13 @@ package com.playbit.backend.room;
 
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
-import jakarta.persistence.Column;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Room {
@@ -65,28 +62,37 @@ public class Room {
         this.category = category;
     }
 
+    public void updateRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
+    public void missionSabotaged() {
+        this.currentTurnSabotaged = true;
+        this.turnDeadline = turnDeadline.minusHours(6L);
+    }
+
     public void turnFinished(Long nextTurnMemberId) {
         // 상대의 턴으로 넘기고
-        this.setCurrentTurnMemberId(nextTurnMemberId);
+        this.currentTurnMemberId = nextTurnMemberId;
         this.currentTurnNumber++;
 
         // 해당 시간을 기록하고
         LocalDateTime now = LocalDateTime.now();
-        this.setTurnStartedAt(now);
-        this.setTurnDeadline(now.plusHours(24));
+        this.turnStartedAt = now;
+        this.turnDeadline = now.plusHours(24);
 
         // 사보타주 변수를 초기화한다.
-        this.setCurrentTurnSabotaged(false);
+        this.currentTurnSabotaged = false;
     }
 
-    public void gameFinished_Not_Draw(Member member) {
-        this.setStatus(RoomStatus.FINISHED);
-        this.setWinner(member);
-        this.setIsDraw(false);
+    public void gameFinished(Member member) {
+        this.status = RoomStatus.FINISHED;
+        this.winner = member;
+        this.isDraw = false;
     }
 
-    public void gameFinished_Draw() {
-        this.setStatus(RoomStatus.FINISHED);
-        this.setIsDraw(true);
+    public void gameFinishedAsDraw() {
+        this.status = RoomStatus.FINISHED;
+        this.isDraw = true;
     }
 }
