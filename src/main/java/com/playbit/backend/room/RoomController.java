@@ -1,7 +1,7 @@
 package com.playbit.backend.room;
 
 import com.playbit.backend.common.dto.ApiResponse;
-import com.playbit.backend.room.dto.CategoryRequest;
+import com.playbit.backend.room.dto.SetRoomRequest;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
@@ -44,7 +44,7 @@ public class RoomController {
     public ResponseEntity<ApiResponse<SetRoomResponse>> setRoom(
             @PathVariable String entryCode,
             @RequestHeader(value = "X-Member-Id") String memberUuid,
-            @RequestBody CategoryRequest request
+            @RequestBody SetRoomRequest request
     ){
         return ResponseEntity.ok(ApiResponse.success(roomService
                 .setRoom(entryCode, memberUuid, request.category(), request.roomName())));

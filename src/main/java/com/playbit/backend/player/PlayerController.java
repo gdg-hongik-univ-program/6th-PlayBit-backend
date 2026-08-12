@@ -1,7 +1,7 @@
 package com.playbit.backend.player;
 
 import com.playbit.backend.common.dto.ApiResponse;
-import com.playbit.backend.player.dto.GetRoomResponse;
+import com.playbit.backend.player.dto.RoomListResponse;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +29,7 @@ public class PlayerController {
 
     @GetMapping
     @Operation(summary = "방 목록 조회", description = "사용자가 입장한 모든 방을 조회합니다.")
-    public ResponseEntity<ApiResponse<GetRoomResponse>> getRooms(
+    public ResponseEntity<ApiResponse<RoomListResponse>> getRooms(
             @RequestHeader(value = "X-Member-Id") String memberUuid
     ) {
         return ResponseEntity.ok(ApiResponse.success(

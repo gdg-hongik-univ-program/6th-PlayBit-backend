@@ -6,7 +6,7 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.player.dto.GetRoomResponse;
+import com.playbit.backend.player.dto.RoomListResponse;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
@@ -129,15 +129,15 @@ public class PlayerService {
     }
 
     @Transactional
-    public GetRoomResponse getRooms(String memberUuid){
+    public RoomListResponse getRooms(String memberUuid){
 
         Member member = memberRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        List<GetRoomResponse.RoomInfo> rooms = playerRepository.findByMember(member).stream()
+        List<RoomListResponse.RoomInfo> rooms = playerRepository.findByMember(member).stream()
                 .map(player -> player.getRoom())
-                .map(room -> GetRoomResponse.RoomInfo.fromRoom(room)).toList();
+                .map(room -> RoomListResponse.RoomInfo.fromRoom(room)).toList();
 
-        return new GetRoomResponse(rooms);
+        return new RoomListResponse(rooms);
     }
 }

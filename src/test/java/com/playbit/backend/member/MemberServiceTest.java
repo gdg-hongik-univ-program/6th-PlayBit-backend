@@ -1,6 +1,6 @@
 package com.playbit.backend.member;
 
-import com.playbit.backend.member.dto.MemberDTO;
+import com.playbit.backend.member.dto.MemberCreateResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ public class MemberServiceTest {
         //given
 
         //when
-        MemberDTO result = memberService.createMember();
+        MemberCreateResponse result = memberService.createMember();
 
         //then
         //생성된 DTO가 null이 아닌지, uuid가 null이 아닌지 확인

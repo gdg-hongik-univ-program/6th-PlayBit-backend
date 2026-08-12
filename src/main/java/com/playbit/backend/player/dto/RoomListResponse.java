@@ -4,7 +4,7 @@ import com.playbit.backend.room.Room;
 
 import java.util.List;
 
-public record GetRoomResponse(
+public record RoomListResponse(
         List<RoomInfo> roomInfos
 ) {
     public record RoomInfo(

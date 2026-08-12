@@ -12,15 +12,15 @@ import lombok.Getter;
         visible = true
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = PlayingRoomDTO.class, name = "PLAYING"),
-        @JsonSubTypes.Type(value = FinishedRoomDTO.class, name = "FINISHED")
+        @JsonSubTypes.Type(value = PlayingRoomDto.class, name = "PLAYING"),
+        @JsonSubTypes.Type(value = FinishedRoomDto.class, name = "FINISHED")
 })
 @Getter
-public class RoomDTO {
+public class RoomDto {
 
     protected RoomStatus status;
 
-    public RoomDTO(RoomStatus status) {
+    public RoomDto(RoomStatus status) {
         this.status = status;
     }
 }

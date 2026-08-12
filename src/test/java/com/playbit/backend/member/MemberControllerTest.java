@@ -1,6 +1,6 @@
 package com.playbit.backend.member;
 
-import com.playbit.backend.member.dto.MemberDTO;
+import com.playbit.backend.member.dto.MemberCreateResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ public class MemberControllerTest {
 
         //given
         UUID uuid = UUID.randomUUID();
-        MemberDTO mockResponse = new MemberDTO(uuid);
+        MemberCreateResponse mockResponse = new MemberCreateResponse(uuid, null);
         given(memberService.createMember()).willReturn(mockResponse);
 
         //when & then

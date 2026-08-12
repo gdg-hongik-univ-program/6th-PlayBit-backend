@@ -1,8 +1,8 @@
 package com.playbit.backend.member;
 
 import com.playbit.backend.common.dto.ApiResponse;
-import com.playbit.backend.member.dto.MemberStatsDTO;
-import com.playbit.backend.member.dto.MemberDTO;
+import com.playbit.backend.member.dto.MemberStatsResponse;
+import com.playbit.backend.member.dto.MemberCreateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +21,9 @@ public class MemberController {
 
     @PostMapping
     @Operation(summary = "사용자 등록", description = "처음 접속하는 사용자이면 UUID를 부여하고 등록시킵니다.")
-    public ResponseEntity<ApiResponse<MemberDTO>> createMember() {
+    public ResponseEntity<ApiResponse<MemberCreateResponse>> createMember() {
 
-        MemberDTO memberDTO = memberService.createMember();
+        MemberCreateResponse memberDTO = memberService.createMember();
         URI location = URI.create("/api/members/" + memberDTO.uuid().toString());
 
         return ResponseEntity.created(location).body(ApiResponse.success(memberDTO));
@@ -40,7 +40,7 @@ public class MemberController {
 
     @GetMapping("/stats")
     @Operation(summary = "특정 회원 미션 통계 조회", description = "헤더 X-Member-Id 로 회원 UUID 를 받아 해당 회원의 총 성공 미션 수와 연속 스트릭을 조회합니다.")
-    public ResponseEntity<ApiResponse<MemberStatsDTO>> getMemberStats(
+    public ResponseEntity<ApiResponse<MemberStatsResponse>> getMemberStats(
             @RequestHeader(value = "X-Member-Id") String memberUuid) {
         return ResponseEntity.ok(ApiResponse.success(memberService.getMemberStats(memberUuid)));
     }

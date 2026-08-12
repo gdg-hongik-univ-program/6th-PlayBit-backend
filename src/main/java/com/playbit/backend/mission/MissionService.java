@@ -9,14 +9,14 @@ import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.mission.dto.MissionCompleteResponse;
-import com.playbit.backend.mission.dto.MissionDTO;
+import com.playbit.backend.mission.dto.MissionDto;
 import com.playbit.backend.mission.dto.MissionSabotageResponse;
 import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
-import com.playbit.backend.room.dto.FinishedRoomDTO;
-import com.playbit.backend.room.dto.PlayingRoomDTO;
+import com.playbit.backend.room.dto.FinishedRoomDto;
+import com.playbit.backend.room.dto.PlayingRoomDto;
 import com.playbit.backend.s3.S3UploadService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -105,7 +105,7 @@ public class MissionService {
             if(isGameOver(room, member)) {
                 //방 상태를 finished로 바꾸고 승자 기록
                 room.gameFinished_Not_Draw(member);
-                response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
+                response = new MissionCompleteResponse(FinishedRoomDto.from(room), MissionDto.from(mission));
 
                 // 게임 종료 이벤트 발행
                 applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMembers));
@@ -116,12 +116,12 @@ public class MissionService {
                 // 만약 9개 칸이 다 채워졌는데 무승부이면
                 if(room.getCurrentTurnNumber() == 10L) {
                     room.gameFinished_Draw();
-                    response = new MissionCompleteResponse(FinishedRoomDTO.from(room), MissionDTO.from(mission));
+                    response = new MissionCompleteResponse(FinishedRoomDto.from(room), MissionDto.from(mission));
 
                     // 게임 종료 이벤트 발행
                     applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMembers));
                 } else {
-                    response = new MissionCompleteResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
+                    response = new MissionCompleteResponse(PlayingRoomDto.from(room), MissionDto.from(mission));
 
                     // 미션 완료 이벤트 발행
                     applicationEventPublisher.publishEvent(
@@ -187,6 +187,6 @@ public class MissionService {
         //사보타주 완료 이벤트 발행
         applicationEventPublisher.publishEvent(new MissionSabotagedEvent(roomCode, List.of(opponent.getMember())));
 
-        return new MissionSabotageResponse(PlayingRoomDTO.from(room), MissionDTO.from(mission));
+        return new MissionSabotageResponse(PlayingRoomDto.from(room), MissionDto.from(mission));
     }
 }
