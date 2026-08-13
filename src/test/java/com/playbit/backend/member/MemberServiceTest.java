@@ -1,14 +1,16 @@
 package com.playbit.backend.member;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.playbit.backend.member.dto.CreateMemberResponse;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.member.dto.GetStatsResponse;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,25 +25,60 @@ public class MemberServiceTest {
     private MemberService memberService;
 
     @Test
-    @DisplayName("새로운 회원이 성공적으로 생성되고 UUID가 반환되어야 한다")
-    void createMember_success() {
-        // given
+    @DisplayName("닉네임 변경 요청 시 중복되지 않으면 닉네임이 정상적으로 변경된다.")
+    void setMemberNickname_success() {
+        Member member = Member.builder()
+                .memberId(1L)
+                .googleSub("12345")
+                .email("user@gmail.com")
+                .nickname("구닉네임")
+                .build();
 
-        // when
-        CreateMemberResponse result = memberService.createMember();
+        when(memberRepository.existsByNickname("새닉네임")).thenReturn(false);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
 
-        // then
-        // 생성된 DTO가 null이 아닌지, uuid가 null이 아닌지 확인
-        assertThat(result).isNotNull();
-        assertThat(result.uuid()).isNotNull();
+        memberService.setMemberNickname(member, "새닉네임");
 
-        // memberRepository.save()를 호출할 때 날아가는 엔티티 담고 검증
-        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
-        verify(memberRepository, times(1)).save(memberCaptor.capture());
+        assertThat(member.getNickname()).isEqualTo("새닉네임");
+        verify(memberRepository).existsByNickname("새닉네임");
+        verify(memberRepository).findById(1L);
+    }
 
-        Member savedMember = memberCaptor.getValue();
+    @Test
+    @DisplayName("이미 존재하는 닉네임으로 변경 시 BadRequestException이 발생한다.")
+    void setMemberNickname_duplicatedNickname() {
+        Member member = Member.builder()
+                .memberId(1L)
+                .googleSub("12345")
+                .email("user@gmail.com")
+                .nickname("구닉네임")
+                .build();
 
-        // 실제 저장하려는 엔티티의 uuid와 생성한 DTO의 uuid가 같은지 검증
-        assertThat(savedMember.getMemberUuid()).isEqualTo(result.uuid().toString());
+        when(memberRepository.existsByNickname("중복닉네임")).thenReturn(true);
+
+        assertThatThrownBy(() -> memberService.setMemberNickname(member, "중복닉네임"))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    @DisplayName("회원의 미션 통계를 정상적으로 조회한다.")
+    void getMemberStats_success() {
+        Member member = Member.builder()
+                .memberId(1L)
+                .googleSub("12345")
+                .email("user@gmail.com")
+                .nickname("플레이비트테스터")
+                .totalMissionSuccess(5)
+                .consecutiveMissionStreak(3)
+                .build();
+
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        GetStatsResponse response = memberService.getMemberStats(member);
+
+        assertThat(response).isNotNull();
+        assertThat(response.nickname()).isEqualTo("플레이비트테스터");
+        assertThat(response.totalMissionSuccess()).isEqualTo(5);
+        assertThat(response.consecutiveMissionStreak()).isEqualTo(3);
     }
 }
