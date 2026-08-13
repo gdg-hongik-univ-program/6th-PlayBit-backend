@@ -1,5 +1,6 @@
 package com.playbit.backend.config;
 
+import com.playbit.backend.auth.LoginMemberArgumentResolver;
 import com.playbit.backend.auth.MemberAuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -7,14 +8,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 public class CorsConfig implements WebMvcConfigurer {
 
     private final MemberAuthInterceptor memberAuthInterceptor;
+    private final LoginMemberArgumentResolver loginMemberArgumentResolver;
 
     // ✅ 기존 설정 대신 Filter 단에서 동작하는 CorsFilter를 Bean으로 등록합니다.
     @Bean
@@ -42,11 +47,15 @@ public class CorsConfig implements WebMvcConfigurer {
         return new CorsFilter(source);
     }
 
-    // ✅ 인터셉터 설정은 그대로 유지합니다.
+    // 로그인 기능에 따른 exclude 변경
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(memberAuthInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/members");
+                .excludePathPatterns("/api/auth/google");
+    }
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(loginMemberArgumentResolver);
     }
 }
