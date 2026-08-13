@@ -1,25 +1,30 @@
 package com.playbit.backend.member;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Schema(description = "사용자 엔티티")
 public class Member {
-
-    public Member(String memberUuid) {
-        this.memberUuid = memberUuid;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 
-    @Column(unique = true)
-    private String memberUuid;
+    @Column(nullable = false, unique = true)
+    private String googleSub;
+
+    @Column(nullable = false)
+    private String email;
 
     @Column(unique = true)
     private String nickname;
