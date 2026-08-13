@@ -8,13 +8,13 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
 
-    // Auth
-    AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A0001", "X-Member-Id 헤더가 필요합니다."),
+    // Auth (인증 관련 에러 코드)
+    AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A0001", "로그인이 필요하거나 세션이 만료되었습니다."),
+    INVALID_GOOGLE_ID_TOKEN(HttpStatus.UNAUTHORIZED, "A0002", "유효하지 않거나 만료된 구글 로그인 토큰입니다."),
+    ID_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "A0003", "구글 ID 토큰이 누락되었습니다."),
 
     // Member
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MM001", "사용자를 찾을 수 없습니다."),
-
-    // Nickname
     NICKNAME_DUPLICATED(HttpStatus.BAD_REQUEST, "MM002", "닉네임이 이미 사용 중입니다."),
 
     // Mission
