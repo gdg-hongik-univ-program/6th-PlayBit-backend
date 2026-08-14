@@ -28,7 +28,6 @@ public class CorsConfig implements WebMvcConfigurer {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        // 🚨 주의: URL 양옆의 < > 기호는 반드시 제거해야 합니다.
         config.addAllowedOrigin("https://playbit-play-bit.vercel.app");
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://localhost:5173");
@@ -54,6 +53,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/google");
     }
+
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(loginMemberArgumentResolver);

@@ -5,8 +5,8 @@ import com.playbit.backend.room.Room;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 @Entity
 @Getter

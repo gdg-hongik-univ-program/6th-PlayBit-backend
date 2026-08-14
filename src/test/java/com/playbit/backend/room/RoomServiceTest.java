@@ -1,10 +1,5 @@
 package com.playbit.backend.room;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.playbit.backend.member.Member;
 import com.playbit.backend.mission.Content;
 import com.playbit.backend.mission.Mission;
@@ -14,9 +9,6 @@ import com.playbit.backend.player.Player;
 import com.playbit.backend.player.PlayerRepository;
 import com.playbit.backend.player.PlayerRole;
 import com.playbit.backend.room.dto.EnterRoomResponse;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +17,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class RoomServiceTest {
@@ -76,6 +77,7 @@ public class RoomServiceTest {
             Player player1 = new Player(room, currentMember, PlayerRole.O);
             Player player2 = new Player(room, opponentMember, PlayerRole.X);
 
+            // 🌟 11개의 생성자 인자 규격에 맞춰 뒤에 null 2개를 추가합니다. (comment, sabotageComment)
             Mission mission = new Mission(
                     1L, room, 1L, Content.STUDY_1, currentMember, LocalDateTime.now(), null, false, null, null, null);
 
