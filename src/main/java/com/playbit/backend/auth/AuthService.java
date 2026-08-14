@@ -8,12 +8,13 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.member.dto.MemberDTO;
-import java.util.Collections;
+import com.playbit.backend.member.dto.MemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class AuthService {
     private String googleClientId;
 
     @Transactional
-    public MemberDTO loginWithGoogleIdToken(String idTokenString) {
+    public MemberDto loginWithGoogleIdToken(String idTokenString) {
         if (idTokenString == null || idTokenString.isBlank()) {
             throw new BadRequestException(ErrorCode.ID_TOKEN_REQUIRED);
         }
@@ -40,7 +41,7 @@ public class AuthService {
                 .orElseGet(() -> memberRepository.save(
                         Member.builder().googleSub(googleSub).email(email).build()));
 
-        return MemberDTO.from(member);
+        return MemberDto.from(member);
     }
 
     private GoogleIdToken.Payload verifyGoogleIdToken(String idTokenString) {

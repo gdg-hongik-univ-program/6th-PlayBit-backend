@@ -6,7 +6,7 @@ import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
-import com.playbit.backend.member.dto.MemberDTO;
+import com.playbit.backend.member.dto.MemberDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,9 +26,9 @@ public class AuthController {
 
     @PostMapping("/google")
     @Operation(summary = "구글 로그인", description = "구글 ID Token을 검증하여 로그인 처리하고 세션(JSESSIONID)을 발급합니다.")
-    public ResponseEntity<ApiResponse<MemberDTO>> loginWithGoogle(
+    public ResponseEntity<ApiResponse<MemberDto>> loginWithGoogle(
             @RequestBody GoogleLoginRequest request, HttpServletRequest httpServletRequest) {
-        MemberDTO memberDTO = authService.loginWithGoogleIdToken(request.idToken());
+        MemberDto memberDTO = authService.loginWithGoogleIdToken(request.idToken());
 
         // HTTP 세션 생성 및 사용자 PK 저장 (JSESSIONID 쿠키 발급)
         HttpSession session = httpServletRequest.getSession(true);
@@ -39,13 +39,13 @@ public class AuthController {
 
     @GetMapping("/me")
     @Operation(summary = "로그인 유저 정보 조회", description = "현재 세션에 로그인된 사용자의 정보를 반환합니다.")
-    public ResponseEntity<ApiResponse<MemberDTO>> getMyInfo(@LoginMember Member member) {
+    public ResponseEntity<ApiResponse<MemberDto>> getMyInfo(@LoginMember Member member) {
 
         // DB에서 최신 회원 프로필(닉네임) 정보를 조회하여 반환
         Member managedMember = memberRepository.findById(member.getMemberId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        return ResponseEntity.ok(ApiResponse.success(MemberDTO.from(member)));
+        return ResponseEntity.ok(ApiResponse.success(MemberDto.from(member)));
     }
 
     @PostMapping("/logout")

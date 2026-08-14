@@ -1,8 +1,8 @@
-package com.playbit.backend.webpush;
+package com.playbit.backend.webPush;
 
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
+        import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
