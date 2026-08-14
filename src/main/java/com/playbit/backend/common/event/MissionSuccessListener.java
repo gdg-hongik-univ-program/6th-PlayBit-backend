@@ -1,10 +1,13 @@
 package com.playbit.backend.common.event;
 
+import com.playbit.backend.common.exception.ErrorCode;
+import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
 import com.playbit.backend.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
@@ -14,12 +17,12 @@ public class MissionSuccessListener {
     private final MemberRepository memberRepository;
 
     @EventListener
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW) // 독립 트랜잭션으로 즉시 DB 커밋 보장
     public void handleMissionSuccess(MissionSuccessEvent event) {
-        Member member = memberRepository
-                .findByMemberUuid(event.member().getMemberUuid())
-                .orElseThrow(() -> new IllegalStateException("Member not found for MissionSuccessEvent"));
-        member.incrementMissionSuccess();
-        member.updateMissionStreak();
+        Member managedMember = memberRepository.findById(event.member().getMemberId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        managedMember.incrementMissionSuccess();
+        managedMember.updateMissionStreak();
     }
 }

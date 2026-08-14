@@ -4,7 +4,7 @@ import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
 import com.playbit.backend.member.Member;
-import com.playbit.backend.member.MemberRepository;
+import com.playbit.backend.mission.MissionRepository;
 import com.playbit.backend.player.dto.PlayerJoinResponse;
 import com.playbit.backend.player.dto.RoomListResponse;
 import com.playbit.backend.room.Room;
@@ -20,13 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PlayerService {
+
     private final PlayerRepository playerRepository;
     private final RoomRepository roomRepository;
-    private final MemberRepository memberRepository;
+    private final MissionRepository missionRepository; // 미션 리포지토리 주입
     private final RoomService roomService;
 
     @Transactional
-    public PlayerJoinResponse registerPlayer(String entryCode, String memberUuid) {
+    public PlayerJoinResponse registerPlayer(String entryCode, Member member) {
 
         Room room = roomRepository
                 .findByEntryCode(entryCode)
@@ -36,21 +37,14 @@ public class PlayerService {
             throw new BadRequestException(ErrorCode.ROOM_FINISHED);
         }
 
-        Member member = memberRepository
-                .findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
-        // 해당 멤버가 이미 이 방의 플레이어인지 확인
         Optional<Player> existingPlayer = playerRepository.findByRoomAndMember(room, member);
         if (existingPlayer.isPresent()) {
             return PlayerJoinResponse.from(existingPlayer.get());
         }
 
-        // 현재 방에 등록된 플레이어 수 확인
         long playerCount = playerRepository.countByRoom(room);
         PlayerRole role;
 
-        // 역할 부여 및 정원 초가 검증
         if (playerCount == 0) {
             role = PlayerRole.O;
         } else if (playerCount == 1) {
@@ -59,20 +53,17 @@ public class PlayerService {
         } else {
             throw new BadRequestException(ErrorCode.PLAYER_ROOM_IS_ALREADY_FULL);
         }
+
         Player player = new Player(room, member, role);
         playerRepository.save(player);
         return PlayerJoinResponse.from(player);
     }
 
     @Transactional
-    public void leaveRoom(String entryCode, String memberUuid) {
+    public void leaveRoom(String entryCode, Member member) {
         Room room = roomRepository
                 .findByEntryCode(entryCode)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
-
-        Member member = memberRepository
-                .findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         Player player = playerRepository
                 .findByRoomAndMember(room, member)
@@ -82,16 +73,13 @@ public class PlayerService {
 
         long remaining = playerRepository.countByRoom(room);
         if (remaining == 0) {
-            roomRepository.delete(room);
+            missionRepository.deleteByRoom(room); // 1. 방에 연관된 9개 미션 삭제 (FK 제약조건 해제)
+            roomRepository.delete(room);         // 2. 방 삭제
         }
     }
 
     @Transactional(readOnly = true)
-    public RoomListResponse getRooms(String memberUuid) {
-        Member member = memberRepository
-                .findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public RoomListResponse getRooms(Member member) {
         List<RoomListResponse.RoomInfo> rooms = playerRepository.findByMember(member).stream()
                 .map(Player::getRoom)
                 .map(RoomListResponse.RoomInfo::fromRoom)

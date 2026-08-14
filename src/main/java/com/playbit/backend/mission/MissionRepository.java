@@ -12,4 +12,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
     List<Mission> findByRoomAndCompletedBy(Room room, Member member);
 
     List<Mission> findByRoom(Room room);
+
+    // 방 삭제 시 연관된 9개 미션 일괄 삭제용
+    void deleteByRoom(Room room);
 }

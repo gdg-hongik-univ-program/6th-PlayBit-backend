@@ -3,9 +3,7 @@ package com.playbit.backend.member;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
-import com.playbit.backend.member.dto.CreateMemberResponse;
 import com.playbit.backend.member.dto.GetStatsResponse;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,34 +15,27 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public CreateMemberResponse createMember() {
-        UUID uuid = UUID.randomUUID();
-
-        // uuid 중복 확률은 극히 드물어 성능을 위해 중복 검사 로직 생략하고 바로 등록
-        memberRepository.save(new Member(uuid.toString()));
-
-        return new CreateMemberResponse(uuid, null);
-    }
-
-    @Transactional
-    public void setMemberNickname(String memberUuid, String nickname) {
-        Member member = memberRepository
-                .findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public void setMemberNickname(Member member, String nickname) {
         if (memberRepository.existsByNickname(nickname)) {
             throw new BadRequestException(ErrorCode.NICKNAME_DUPLICATED);
         }
 
-        member.updateNickname(nickname);
+        // 트랜잭션 내에서 영속(Managed) 상태의 Member 엔티티를 조회하여 변경
+        Member managedMember = memberRepository.findById(member.getMemberId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        managedMember.updateNickname(nickname); // JPA 변경 감지로 DB UPDATE 쿼리 자동 실행
     }
 
     @Transactional(readOnly = true)
-    public GetStatsResponse getMemberStats(String memberUuid) {
-        Member member = memberRepository
-                .findByMemberUuid(memberUuid)
+    public GetStatsResponse getMemberStats(Member member) {
+        Member managedMember = memberRepository.findById(member.getMemberId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
         return new GetStatsResponse(
-                member.getNickname(), member.getTotalMissionSuccess(), member.getConsecutiveMissionStreak());
+                managedMember.getNickname(),
+                managedMember.getTotalMissionSuccess(),
+                managedMember.getConsecutiveMissionStreak()
+        );
     }
 }
