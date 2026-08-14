@@ -1,11 +1,12 @@
 package com.playbit.backend.member;
 
-import com.playbit.backend.member.dto.MemberDTO;
+import com.playbit.backend.common.exception.BadRequestException;
+import com.playbit.backend.common.exception.ErrorCode;
+import com.playbit.backend.common.exception.NotFoundException;
+import com.playbit.backend.member.dto.GetStatsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -14,14 +15,27 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public MemberDTO createMember() {
+    public void setMemberNickname(Member member, String nickname) {
+        if (memberRepository.existsByNickname(nickname)) {
+            throw new BadRequestException(ErrorCode.NICKNAME_DUPLICATED);
+        }
 
-        // v4 uuid 생성 (완전히 랜덤 -> 조회 로직 성능 저하 야기할 가능성이 있음)
-        UUID uuid = UUID.randomUUID();
+        // 트랜잭션 내에서 영속(Managed) 상태의 Member 엔티티를 조회하여 변경
+        Member managedMember = memberRepository.findById(member.getMemberId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // uuid 중복 확률은 극히 드물어 성능을 위해 중복 검사 로직 생략하고 바로 등록
-        memberRepository.save(new Member(uuid.toString()));
+        managedMember.updateNickname(nickname); // JPA 변경 감지로 DB UPDATE 쿼리 자동 실행
+    }
 
-        return new MemberDTO(uuid);
+    @Transactional(readOnly = true)
+    public GetStatsResponse getMemberStats(Member member) {
+        Member managedMember = memberRepository.findById(member.getMemberId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return new GetStatsResponse(
+                managedMember.getNickname(),
+                managedMember.getTotalMissionSuccess(),
+                managedMember.getConsecutiveMissionStreak()
+        );
     }
 }
