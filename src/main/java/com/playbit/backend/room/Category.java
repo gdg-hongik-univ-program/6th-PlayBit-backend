@@ -1,10 +1,7 @@
 package com.playbit.backend.room;
 
-import com.playbit.backend.mission.Content;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @RequiredArgsConstructor

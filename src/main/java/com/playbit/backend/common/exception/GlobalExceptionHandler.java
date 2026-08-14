@@ -1,9 +1,7 @@
-package com.playbit.backend.common;
+package com.playbit.backend.common.exception;
 
 import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.common.dto.ErrorResponse;
-import com.playbit.backend.common.exception.BadRequestException;
-import com.playbit.backend.common.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,7 +15,8 @@ public class GlobalExceptionHandler {
 
     // MethodArgumentNotValidException
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e) {
 
         // 첫 번째 에러 메시지 추출
         String message = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
@@ -50,5 +49,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getStatus())
                 .body(ApiResponse.error(new ErrorResponse(errorCode.getCode(), errorCode.getMessage())));
     }
-
 }
