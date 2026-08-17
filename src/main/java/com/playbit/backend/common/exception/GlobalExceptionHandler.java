@@ -4,6 +4,7 @@ import com.playbit.backend.common.dto.ApiResponse;
 import com.playbit.backend.common.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -30,6 +31,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<ErrorResponse>> handleUnknownException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(new ErrorResponse("SERVER_ERROR", "서버 내부에서 오류가 발생하였습니다.")));
+    }
+
+    // 방 동시 입장 예외 핸들러
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException e) {
+        // HTTP 409 Conflict 상태 코드와 함께 예쁜 메시지 반환
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(new ErrorResponse("BAD_REQUEST", "방금 다른 유저가 입장했습니다. 다시 시도해주세요.")));
     }
 
     // 커스텀 예외 처리

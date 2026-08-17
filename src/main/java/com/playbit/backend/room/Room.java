@@ -2,10 +2,11 @@ package com.playbit.backend.room;
 
 import com.playbit.backend.member.Member;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -49,6 +50,9 @@ public class Room {
     private Boolean currentTurnSabotaged;
 
     private Boolean isDraw;
+
+    @Version
+    private Long version;
 
     public void startGame(Long firstTurnMemberId) {
         this.status = RoomStatus.PLAYING;
