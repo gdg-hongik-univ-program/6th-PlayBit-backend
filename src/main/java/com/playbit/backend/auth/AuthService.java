@@ -13,9 +13,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
+import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -35,11 +38,19 @@ public class AuthService {
 
         String googleSub = payload.getSubject();
         String email = payload.getEmail();
+        
+        log.info("구글 토큰 검증 성공 - 이메일: {}", email);
 
-        Member member = memberRepository
-                .findByGoogleSub(googleSub)
-                .orElseGet(() -> memberRepository.save(
-                        Member.builder().googleSub(googleSub).email(email).build()));
+        Optional<Member> existingMember = memberRepository.findByGoogleSub(googleSub);
+        Member member;
+        
+        if (existingMember.isPresent()) {
+            member = existingMember.get();
+            log.info("기존 유저 로그인 처리 완료 (memberId: {})", member.getMemberId());
+        } else {
+            member = memberRepository.save(Member.builder().googleSub(googleSub).email(email).build());
+            log.info("신규 유저 가입 처리 완료 (memberId: {})", member.getMemberId());
+        }
 
         return MemberDto.from(member);
     }
@@ -57,6 +68,7 @@ public class AuthService {
             GoogleIdToken idToken = verifier.verify(idTokenString);
 
             if (idToken == null) {
+                log.warn("구글 토큰 검증 실패: 유효하지 않은 토큰입니다.");
                 throw new BadRequestException(ErrorCode.INVALID_GOOGLE_ID_TOKEN);
             }
 
@@ -64,6 +76,7 @@ public class AuthService {
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
+            log.error("구글 토큰 검증 중 예외 발생: {}", e.getMessage());
             throw new BadRequestException(ErrorCode.INVALID_GOOGLE_ID_TOKEN);
         }
     }

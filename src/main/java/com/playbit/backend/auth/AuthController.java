@@ -14,7 +14,9 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -28,11 +30,16 @@ public class AuthController {
     @Operation(summary = "구글 로그인", description = "구글 ID Token을 검증하여 로그인 처리하고 세션(JSESSIONID)을 발급합니다.")
     public ResponseEntity<ApiResponse<MemberDto>> loginWithGoogle(
             @RequestBody GoogleLoginRequest request, HttpServletRequest httpServletRequest) {
+        
+        log.info("프론트엔드로부터 구글 로그인 요청이 들어왔습니다.");
+        
         MemberDto memberDTO = authService.loginWithGoogleIdToken(request.idToken());
 
         // HTTP 세션 생성 및 사용자 PK 저장 (JSESSIONID 쿠키 발급)
         HttpSession session = httpServletRequest.getSession(true);
         session.setAttribute(LoginMemberArgumentResolver.SESSION_KEY, memberDTO.memberId());
+        
+        log.info("로그인 성공 및 세션 발급 완료 (memberId: {})", memberDTO.memberId());
 
         return ResponseEntity.ok(ApiResponse.success(memberDTO));
     }
@@ -51,9 +58,12 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "현재 HTTP 세션을 만료시킵니다.")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+        log.info("로그아웃 요청이 들어왔습니다.");
+        
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
+            log.info("세션이 성공적으로 파기되었습니다.");
         }
         return ResponseEntity.ok(ApiResponse.success(null));
     }
