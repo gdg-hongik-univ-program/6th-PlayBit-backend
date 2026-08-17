@@ -46,11 +46,11 @@ public class RoomService {
 
         room.startGame(firstTurnMemberId);
 
-        List<Member> players = playerRepository.findByRoom(room).stream()
-                .map(Player::getMember)
+        List<Long> playerIds = playerRepository.findByRoom(room).stream()
+                .map(player -> player.getMember().getMemberId())
                 .toList();
 
-        eventPublisher.publishEvent(new GameStartedEvent(room.getEntryCode(), players));
+        eventPublisher.publishEvent(new GameStartedEvent(room.getEntryCode(), playerIds));
     }
 
     @Scheduled(cron = "0 */30 * * * *")

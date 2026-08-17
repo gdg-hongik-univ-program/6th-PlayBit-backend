@@ -1,5 +1,7 @@
 package com.playbit.backend.common.event;
 
+import com.playbit.backend.member.Member;
+import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.notification.NotificationService;
 import com.playbit.backend.s3.S3UploadService;
 import com.playbit.backend.sse.SseService;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -23,6 +26,7 @@ public class GameEventListener {
     private final SseService sseService;
     private final NotificationService notificationService;
     private final S3UploadService s3UploadService;
+    private final MemberRepository memberRepository;
 
     @Retryable(
             value = {Exception.class},
@@ -37,7 +41,8 @@ public class GameEventListener {
         sseService.broadcastToRoom(event.entryCode(), Map.of("message", "GAME_STARTED"));
 
         // 게임 시작 알림을 플레이어들에게 전송
-        notificationService.roomStartedNotification(event.entryCode(), event.players());
+        List<Member> members = memberRepository.findAllByMemberIdIn(event.memberIds());
+        notificationService.roomStartedNotification(event.entryCode(), members);
     }
 
     @Retryable(
@@ -53,7 +58,8 @@ public class GameEventListener {
         sseService.broadcastToRoom(event.roomCode(), Map.of("message", "GAME_ENDED"));
 
         // 게임 종료 알림 보내기
-        notificationService.roomFinishedNotification(event.roomCode(), event.roomMembers());
+        List<Member> members = memberRepository.findAllByMemberIdIn(event.memberIds());
+        notificationService.roomFinishedNotification(event.roomCode(), members);
     }
 
     @Retryable(
@@ -65,8 +71,10 @@ public class GameEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMissionCompletedEvent(MissionCompletedEvent event) {
 
+        List<Member> members = memberRepository.findAllByMemberIdIn(event.memberIds());
+
         // 게임 안 끝나고 턴만 넘어갈 때 알림 발송
-        notificationService.missionCompleteNotification(event.roomCode(), event.members());
+        notificationService.missionCompleteNotification(event.roomCode(), members);
 
         // 방에 있는 사람들에게 미션 완료 알림 발송
         sseService.broadcastToRoom(event.roomCode(), Map.of("message", "MISSION_COMPLETED"));
@@ -85,7 +93,8 @@ public class GameEventListener {
         sseService.broadcastToRoom(event.roomCode(), Map.of("message", "MISSION_SABOTAGED"));
 
         // 리턴 전 상대방에게 알림 전송
-        notificationService.sabotageCompleteNotification(event.roomCode(), event.members());
+        List<Member> members = memberRepository.findAllByMemberIdIn(event.memberIds());
+        notificationService.sabotageCompleteNotification(event.roomCode(), members);
     }
 
     @Retryable(

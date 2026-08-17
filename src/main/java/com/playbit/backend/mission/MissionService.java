@@ -82,8 +82,8 @@ public class MissionService {
         Mission mission = context.mission();
         Player opponent = context.opponent();
 
-        List<Member> roomMembers = playerRepository.findByRoom(room).stream()
-                .map(Player::getMember)
+        List<Long> roomMemberIds = playerRepository.findByRoom(room).stream()
+                .map(player -> player.getMember().getMemberId())
                 .toList();
 
         if (room.getCurrentTurnMemberId().equals(member.getMemberId())) {
@@ -92,14 +92,14 @@ public class MissionService {
             mission.completeMission(member, imageUrl, comment);
 
             // 미션 성공 이벤트 발행 (스트릭/성공 수 갱신 리스너로 전달)
-            applicationEventPublisher.publishEvent(new MissionSuccessEvent(roomCode, member));
+            applicationEventPublisher.publishEvent(new MissionSuccessEvent(roomCode, member.getMemberId()));
 
             MissionCompleteResponse response;
 
             if (isGameOver(room, member)) {
                 room.gameFinished(member);
                 response = new MissionCompleteResponse(FinishedRoomDto.from(room), MissionDto.from(mission));
-                applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMembers));
+                applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMemberIds));
 
             } else {
                 room.turnFinished(opponent.getMember().getMemberId());
@@ -107,11 +107,11 @@ public class MissionService {
                 if (room.getCurrentTurnNumber() == 10L) {
                     room.gameFinishedAsDraw();
                     response = new MissionCompleteResponse(FinishedRoomDto.from(room), MissionDto.from(mission));
-                    applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMembers));
+                    applicationEventPublisher.publishEvent(new GameEndedEvent(roomCode, roomMemberIds));
                 } else {
                     response = new MissionCompleteResponse(PlayingRoomDto.from(room), MissionDto.from(mission));
                     applicationEventPublisher.publishEvent(
-                            new MissionCompletedEvent(roomCode, List.of(opponent.getMember())));
+                            new MissionCompletedEvent(roomCode, List.of(opponent.getMember().getMemberId())));
                 }
             }
 
@@ -151,7 +151,7 @@ public class MissionService {
         mission.sabotageMission(sabotageImageUrl, comment);
         room.missionSabotaged();
 
-        applicationEventPublisher.publishEvent(new MissionSabotagedEvent(roomCode, List.of(opponent.getMember())));
+        applicationEventPublisher.publishEvent(new MissionSabotagedEvent(roomCode, List.of(opponent.getMember().getMemberId())));
 
         return new MissionSabotageResponse(PlayingRoomDto.from(room), MissionDto.from(mission));
     }

@@ -19,7 +19,7 @@ public class MissionSuccessListener {
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW) // 독립 트랜잭션으로 즉시 DB 커밋 보장
     public void handleMissionSuccess(MissionSuccessEvent event) {
-        Member managedMember = memberRepository.findById(event.member().getMemberId())
+        Member managedMember = memberRepository.findById(event.memberId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         managedMember.incrementMissionSuccess();
