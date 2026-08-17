@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<ErrorResponse>> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException e) {
         // HTTP 409 Conflict 상태 코드와 함께 예쁜 메시지 반환
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error(new ErrorResponse("BAD_REQUEST", "방금 다른 유저가 입장했습니다. 다시 시도해주세요.")));
+                .body(ApiResponse.error(new ErrorResponse("BAD_REQUEST", "동시 요청이 발생했거나 이미 처리된 작업입니다. 새로고침 후 다시 시도해주세요.")));
     }
 
     // 커스텀 예외 처리
