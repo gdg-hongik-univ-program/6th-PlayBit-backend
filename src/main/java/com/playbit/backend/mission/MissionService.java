@@ -1,9 +1,6 @@
 package com.playbit.backend.mission;
 
-import com.playbit.backend.common.event.GameEndedEvent;
-import com.playbit.backend.common.event.MissionCompletedEvent;
-import com.playbit.backend.common.event.MissionSabotagedEvent;
-import com.playbit.backend.common.event.MissionSuccessEvent;
+import com.playbit.backend.common.event.*;
 import com.playbit.backend.common.exception.BadRequestException;
 import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
@@ -19,13 +16,14 @@ import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.dto.FinishedRoomDto;
 import com.playbit.backend.room.dto.PlayingRoomDto;
 import com.playbit.backend.s3.S3UploadService;
-import java.util.*;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +88,7 @@ public class MissionService {
 
         if (room.getCurrentTurnMemberId().equals(member.getMemberId())) {
             String imageUrl = s3UploadService.uploadImage(image, "missions");
+            applicationEventPublisher.publishEvent(new ImageSaveFailedEvent(imageUrl));
             mission.completeMission(member, imageUrl, comment);
 
             // 미션 성공 이벤트 발행 (스트릭/성공 수 갱신 리스너로 전달)
@@ -148,6 +147,7 @@ public class MissionService {
         }
 
         String sabotageImageUrl = s3UploadService.uploadImage(image, "sabotage");
+        applicationEventPublisher.publishEvent(new ImageSaveFailedEvent(sabotageImageUrl));
         mission.sabotageMission(sabotageImageUrl, comment);
         room.missionSabotaged();
 
@@ -156,7 +156,8 @@ public class MissionService {
         return new MissionSabotageResponse(PlayingRoomDto.from(room), MissionDto.from(mission));
     }
 
-    private record MissionContext(Room room, Mission mission, Player opponent) {}
+    private record MissionContext(Room room, Mission mission, Player opponent) {
+    }
 
     private MissionContext validateAndGetContext(Member member, String roomCode, long position) {
         Room room = roomRepository
