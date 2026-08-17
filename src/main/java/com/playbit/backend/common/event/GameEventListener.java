@@ -1,21 +1,34 @@
 package com.playbit.backend.common.event;
 
 import com.playbit.backend.notification.NotificationService;
+import com.playbit.backend.s3.S3UploadService;
 import com.playbit.backend.sse.SseService;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.Map;
+
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GameEventListener {
 
     private final SseService sseService;
     private final NotificationService notificationService;
+    private final S3UploadService s3UploadService;
 
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGameStartedEvent(GameStartedEvent event) {
@@ -27,6 +40,11 @@ public class GameEventListener {
         notificationService.roomStartedNotification(event.entryCode(), event.players());
     }
 
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGameEndedEvent(GameEndedEvent event) {
@@ -38,6 +56,11 @@ public class GameEventListener {
         notificationService.roomFinishedNotification(event.roomCode(), event.roomMembers());
     }
 
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMissionCompletedEvent(MissionCompletedEvent event) {
@@ -49,6 +72,11 @@ public class GameEventListener {
         sseService.broadcastToRoom(event.roomCode(), Map.of("message", "MISSION_COMPLETED"));
     }
 
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMissionSabotagedEvent(MissionSabotagedEvent event) {
@@ -60,10 +88,28 @@ public class GameEventListener {
         notificationService.sabotageCompleteNotification(event.roomCode(), event.members());
     }
 
+    @Retryable(
+            value = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleRoomUpdatedEvent(RoomUpdatedEvent event) {
 
         sseService.broadcastToRoom(event.entryCode(), Map.of("message", "TURN_TIMEOUT_UPDATED"));
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    public void handleImageSaveFailedEvent(ImageSaveFailedEvent event) {
+
+        s3UploadService.deleteImage(event.imageUrl());
+    }
+
+    @Recover
+    public void recoverSendNotification(Exception e) {
+        log.error("3회 재시도에도 불구하고 SSE 혹은 푸시 알림 발송 최종 실패");
+        log.error("원인: {}", e.getMessage());
     }
 }

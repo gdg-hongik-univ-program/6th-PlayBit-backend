@@ -22,15 +22,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
-    // Web Push API 통신과 VAPID 암호화를 담당하는 라이브러리
     implementation 'nl.martijndwars:web-push:5.1.1'
-
-    // 이 라이브러리는 내부적으로 BouncyCastle(암호화 라이브러리)을 사용합니다.
     implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
-
-    // Google OAuth2 ID Token 검증 라이브러리
+    implementation 'org.springframework.retry:spring-retry:2.0.5'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'com.google.api-client:google-api-client:2.7.0'
-
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
