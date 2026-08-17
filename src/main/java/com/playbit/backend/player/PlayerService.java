@@ -11,11 +11,12 @@ import com.playbit.backend.room.Room;
 import com.playbit.backend.room.RoomRepository;
 import com.playbit.backend.room.RoomService;
 import com.playbit.backend.room.RoomStatus;
-import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +31,7 @@ public class PlayerService {
     public PlayerJoinResponse registerPlayer(String entryCode, Member member) {
 
         Room room = roomRepository
-                .findByEntryCode(entryCode)
+                .findByEntryCodeWithPessimisticLock(entryCode)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ROOM_NOT_FOUND));
 
         if (room.getStatus() == RoomStatus.FINISHED) {
