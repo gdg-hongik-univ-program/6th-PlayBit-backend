@@ -21,6 +21,9 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     List<Player> findByRoom(Room room);
 
+    @Query("SELECT p FROM Player p JOIN FETCH p.room r WHERE p.member = :member")
+    List<Player> findByMemberWithRoomFetchJoin(@Param("member") Member member);
+
     List<Player> findByMember(Member member);
 
     @Query("SELECT p FROM Player p " +

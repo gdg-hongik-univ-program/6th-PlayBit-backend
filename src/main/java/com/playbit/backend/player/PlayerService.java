@@ -81,7 +81,8 @@ public class PlayerService {
 
     @Transactional(readOnly = true)
     public RoomListResponse getRooms(Member member) {
-        List<RoomListResponse.RoomInfo> rooms = playerRepository.findByMember(member).stream()
+        List<RoomListResponse.RoomInfo> rooms = playerRepository
+                .findByMemberWithRoomFetchJoin(member).stream()
                 .map(Player::getRoom)
                 .map(RoomListResponse.RoomInfo::fromRoom)
                 .toList();

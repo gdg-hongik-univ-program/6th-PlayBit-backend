@@ -56,11 +56,14 @@ public class WebPushService {
     }
 
     public void sendPushToMembers(List<Member> members, String payloadJSON) {
-        List<WebPushSubscription> byMemberId = members.stream()
-                .flatMap(member -> webPushRepository.findByMemberMemberId(member.getMemberId()).stream())
+
+        List<Long> memberIds = members.stream()
+                .map(Member::getMemberId)
                 .toList();
 
-        for (WebPushSubscription webPushSubscription : byMemberId) {
+        List<WebPushSubscription> byMemberId2 = webPushRepository.findAllByMemberMemberIdIn((memberIds));
+
+        for (WebPushSubscription webPushSubscription : byMemberId2) {
             try {
                 Notification notification = new Notification(
                         webPushSubscription.getEndpoint(),
