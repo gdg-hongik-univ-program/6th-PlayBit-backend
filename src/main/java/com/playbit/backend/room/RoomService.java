@@ -15,15 +15,18 @@ import com.playbit.backend.player.PlayerRole;
 import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,10 +59,13 @@ public class RoomService {
     @Scheduled(cron = "0 */30 * * * *")
     @Transactional
     public void roomCheck() {
-        List<Room> existingRooms = roomRepository.findByStatus(RoomStatus.PLAYING);
-        for (Room room : existingRooms) {
-            List<Player> players = playerRepository.findByRoom(room);
-            checkRoomStatus(room, players);
+        List<Player> players = playerRepository.findAllExpiredPlayingPlayersWithFetchJoin(LocalDateTime.now());
+
+        Map<Room, List<Player>> roomToPlayersMap = players.stream()
+                .collect(Collectors.groupingBy(Player::getRoom));
+
+        for (Map.Entry<Room, List<Player>> entry : roomToPlayersMap.entrySet()) {
+            checkRoomStatus(entry.getKey(), entry.getValue());
         }
     }
 
