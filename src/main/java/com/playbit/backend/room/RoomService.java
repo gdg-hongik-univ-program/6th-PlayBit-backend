@@ -16,6 +16,7 @@ import com.playbit.backend.room.dto.EnterRoomResponse;
 import com.playbit.backend.room.dto.RoomCreateResponse;
 import com.playbit.backend.room.dto.SetRoomResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoomService {
@@ -65,7 +67,11 @@ public class RoomService {
                 .collect(Collectors.groupingBy(Player::getRoom));
 
         for (Map.Entry<Room, List<Player>> entry : roomToPlayersMap.entrySet()) {
-            checkRoomStatus(entry.getKey(), entry.getValue());
+            try {
+                checkRoomStatus(entry.getKey(), entry.getValue());
+            } catch (Exception e) {
+                log.error("스케줄러: 방({}) 턴 만료 처리 중 오류 발생 (원인: {})", entry.getKey().getEntryCode(), e.getMessage());
+            }
         }
     }
 
