@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Slf4j
@@ -61,6 +62,26 @@ public class S3UploadService {
         } catch (IOException e) {
             log.error("S3 파일 업로드 중 오류 발생", e);
             throw new BadRequestException(ErrorCode.IMAGE_UPLOAD_FAIL);
+        }
+    }
+
+    /** 트랜잭션 롤백 등으로 인해 고아가 된 S3 이미지를 URL을 기반으로 삭제합니다. */
+    public void deleteImage(String imageUrl) {
+        try {
+            // URL에서 S3 key 추출 (https://{bucket}.s3.{region}.amazonaws.com/{key})
+            String prefix = String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
+            String key = imageUrl.replace(prefix, "");
+
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            s3Client.deleteObject(deleteRequest);
+            log.info("트랜잭션 롤백으로 인한 S3 고아 이미지 삭제 완료: {}", key);
+
+        } catch (Exception e) {
+            log.error("S3 고아 이미지 삭제 실패 - URL: {}, 원인: {}", imageUrl, e.getMessage());
         }
     }
 }

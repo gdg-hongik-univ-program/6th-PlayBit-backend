@@ -1,12 +1,14 @@
 package com.playbit.backend.notification;
 
 import com.playbit.backend.member.Member;
+import com.playbit.backend.member.MemberRepository;
 import com.playbit.backend.webpush.WebPushService;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +16,7 @@ public class NotificationService {
 
     private final WebPushService webPushService;
     private final NotificationRepository notificationRepository;
+    private final MemberRepository memberRepository;
 
     // 미션 완료시 상대방에게 알림을 보냄
     @Transactional
@@ -75,12 +78,12 @@ public class NotificationService {
         // 서비스 워커로 보낼 메시지 Payload 작성 (Java 15+ Text Blocks 사용)
         String payload = String.format(
                 """
-                                {
-                                    "title": "%s",
-                                    "body": "%s",
-                                    "url": "/rooms/%s"
-                                }
-                                """,
+                        {
+                            "title": "%s",
+                            "body": "%s",
+                            "url": "/rooms/%s"
+                        }
+                        """,
                 title, content, roomCode);
 
         // 알림 발송 서비스 호출
