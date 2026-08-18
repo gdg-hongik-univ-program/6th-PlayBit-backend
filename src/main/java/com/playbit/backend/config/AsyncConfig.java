@@ -1,14 +1,20 @@
 package com.playbit.backend.config;
 
-import java.util.concurrent.Executor;
+import com.playbit.backend.common.exception.CustomAsyncExceptionHandler;
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.concurrent.Executor;
+
 @Configuration
+@EnableRetry
 @EnableAsync
-public class AsyncConfig {
+public class AsyncConfig implements AsyncConfigurer {
 
     @Bean(name = "taskExecutor")
     public Executor taskExecutor() {
@@ -19,5 +25,10 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("Async-Thread-");
         executor.initialize();
         return executor;
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new CustomAsyncExceptionHandler(); // 아까 만든 클래스 리턴
     }
 }
