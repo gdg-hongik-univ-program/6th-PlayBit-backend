@@ -21,7 +21,17 @@ public record EnterRoomResponse(
         List<PlayerItem> players,
         Long winnerMemberId // PLAYING 상태일때는 null
         ) {
-    public record MissionItem(Long position, String content, Long completedByMemberId, LocalDateTime completedAt) {
+    public record MissionItem(
+            Long position,
+            String content,
+            Long completedByMemberId,
+            LocalDateTime completedAt,
+            String imageUrl,
+            String comment,
+            Boolean sabotagedByOpponent,
+            String sabotageImageUrl,
+            String sabotageComment
+    ) {
         public static MissionItem from(Mission mission) {
             // completedBy가 null인지 먼저 확인하고, null이 아니면 memberId를 추출
             Long completedMemberId = (mission.getCompletedBy() != null)
@@ -32,7 +42,12 @@ public record EnterRoomResponse(
                     mission.getPosition(),
                     mission.getContent().getDescription(),
                     completedMemberId,
-                    mission.getCompletedAt());
+                    mission.getCompletedAt(),
+                    mission.getImageUrl(),
+                    mission.getComment(),
+                    mission.getSabotagedByOpponent(),
+                    mission.getSabotageImageUrl(),
+                    mission.getSabotageComment());
         }
     }
 
