@@ -1,6 +1,6 @@
 package com.playbit.backend.mission.dto;
 
-import com.playbit.backend.room.dto.RoomDto;
+import com.playbit.backend.room.dto.RoomDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,6 +8,6 @@ import lombok.Getter;
 @Getter
 public class MissionCompleteResponse {
 
-    private RoomDto room;
-    private MissionDto mission;
+    private RoomDTO room;
+    private MissionDTO mission;
 }

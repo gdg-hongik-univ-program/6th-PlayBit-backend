@@ -1,10 +1,11 @@
 package com.playbit.backend.sse;
 
+import org.springframework.stereotype.Repository;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Repository
 public class SseRepository {
@@ -12,12 +13,12 @@ public class SseRepository {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     // 파이프 저장
-    public void save(String emitterId, SseEmitter sseEmitter) {
+    public void save(String emitterId, SseEmitter sseEmitter){
         emitters.put(emitterId, sseEmitter);
     }
 
     // 파이프 삭제 (연결이 끊기면 호출)
-    public void deleteById(String emitterId) {
+    public void deleteById(String emitterId){
         emitters.remove(emitterId);
     }
 

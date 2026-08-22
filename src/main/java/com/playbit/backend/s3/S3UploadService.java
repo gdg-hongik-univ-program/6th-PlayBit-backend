@@ -1,10 +1,8 @@
 package com.playbit.backend.s3;
 
+import com.playbit.backend.common.ErrorCode;
 import com.playbit.backend.common.exception.BadRequestException;
-import com.playbit.backend.common.exception.ErrorCode;
 import com.playbit.backend.common.exception.NotFoundException;
-import java.io.IOException;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import java.io.IOException;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -29,15 +30,12 @@ public class S3UploadService {
     @Value("${spring.cloud.aws.region.static}")
     private String region;
 
-    /** 파일을 S3에 업로드하고 접근 가능한 URL을 반환합니다. */
+    /**
+     * 파일을 S3에 업로드하고 접근 가능한 URL을 반환합니다.
+     */
     public String uploadImage(MultipartFile image, String directory) {
         if (image == null || image.isEmpty()) {
             throw new NotFoundException(ErrorCode.IMAGE_NOT_FOUND);
-        }
-
-        String contentType = image.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new BadRequestException(ErrorCode.INVALID_IMAGE_FORMAT);
         }
 
         try {
@@ -53,7 +51,8 @@ public class S3UploadService {
                     .build();
 
             // S3Client를 통해 S3로 파일 스트림 전송
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(image.getInputStream(), image.getSize()));
+            s3Client.putObject(putObjectRequest,
+                    RequestBody.fromInputStream(image.getInputStream(), image.getSize()));
 
             // 업로드 완료 후, 접속 가능한 이미지 주소(URL)를 수동으로 조합하여 반환
             return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, uniqueFilename);

@@ -9,17 +9,18 @@ import lombok.Getter;
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
         property = "status",
-        visible = true)
+        visible = true
+)
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = PlayingRoomDto.class, name = "PLAYING"),
-    @JsonSubTypes.Type(value = FinishedRoomDto.class, name = "FINISHED")
+        @JsonSubTypes.Type(value = PlayingRoomDTO.class, name = "PLAYING"),
+        @JsonSubTypes.Type(value = FinishedRoomDTO.class, name = "FINISHED")
 })
 @Getter
-public class RoomDto {
+public class RoomDTO {
 
     protected RoomStatus status;
 
-    public RoomDto(RoomStatus status) {
+    public RoomDTO(RoomStatus status) {
         this.status = status;
     }
 }

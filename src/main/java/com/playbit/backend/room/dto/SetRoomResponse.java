@@ -1,3 +1,5 @@
 package com.playbit.backend.room.dto;
 
-public record SetRoomResponse() {}
+public record SetRoomResponse() {
+
+}

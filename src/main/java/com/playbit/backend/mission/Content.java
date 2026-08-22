@@ -1,5 +1,6 @@
 package com.playbit.backend.mission;
 
+
 import com.playbit.backend.room.Category;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,7 @@ public enum Content {
     LIFE_7(Category.LIFE, "방 한 곳 정리하기"),
     LIFE_8(Category.LIFE, "휴대폰 화면 닦기"),
     LIFE_9(Category.LIFE, "가방 정리하기");
+
 
     private final Category category;
     private final String description;

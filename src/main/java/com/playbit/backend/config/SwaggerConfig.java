@@ -13,6 +13,9 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-                .info(new Info().title("PlayBit API").version("1.0").description("PlayBit 프로젝트 API 명세서입니다."));
+                .info(new Info()
+                        .title("PlayBit API")
+                        .version("1.0")
+                        .description("PlayBit 프로젝트 API 명세서입니다."));
     }
 }
